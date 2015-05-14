@@ -1,0 +1,39 @@
+--- a/marytts-assembly/pom.xml
++++ b/marytts-assembly/pom.xml
+@@ -12,7 +12,6 @@
+ 	<packaging>pom</packaging>
+ 
+ 	<modules>
+-		<module>assembly-builder</module>
+ 		<module>assembly-runtime</module>
+ 	</modules>
+ </project>
+--- a/pom.xml
++++ b/pom.xml
+@@ -139,10 +139,6 @@
+ 		<module>marytts-common</module>
+ 		<module>marytts-signalproc</module>
+ 		<module>marytts-runtime</module>
+-		<module>marytts-client</module>
+-		<module>marytts-builder</module>
+-		<module>marytts-redstart</module>
+-		<module>marytts-transcription</module>
+ 		<module>marytts-lang-de</module>
+ 		<module>marytts-lang-en</module>
+ 		<module>marytts-lang-te</module>
+--- a/marytts-assembly/assembly-runtime/pom.xml
++++ b/marytts-assembly/assembly-runtime/pom.xml
+@@ -22,13 +22,6 @@
+ 		</dependency>
+ 		<dependency>
+ 			<groupId>${project.groupId}</groupId>
+-			<artifactId>marytts-client</artifactId>
+-			<version>${project.version}</version>
+-			<type>jar</type>
+-			<classifier>jar-with-dependencies</classifier>
+-		</dependency>
+-		<dependency>
+-			<groupId>${project.groupId}</groupId>
+ 			<artifactId>marytts-lang-de</artifactId>
+ 			<version>${project.version}</version>
+ 		</dependency>

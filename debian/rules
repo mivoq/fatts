@@ -1,0 +1,39 @@
+#!/usr/bin/make -f
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+export DEB_CFLAGS_MAINT_APPEND = -Wall
+include /usr/share/dpkg/buildflags.mk
+
+DEB_MAKE_INVOKE = mvn -Dmaven.repo.local=debian/tmp-build-maven/repository/
+DEB_MAKE_BUILD_TARGET = install
+
+include /usr/share/cdbs/1/rules/upstream-tarball.mk
+include /usr/share/cdbs/1/rules/utils.mk
+include /usr/share/cdbs/1/rules/debhelper.mk
+unexport DEB_MAKE_CLEAN_TARGET
+include /usr/share/cdbs/1/class/makefile.mk
+
+DEB_TAR_SRCDIR := .
+
+BACKUP=
+
+binary-predeb/marytts::
+	sed -e 's/\(init-system-helpers[[:space:]]*\)([^)]*)/\1(>= 1.14~)/g' -i debian/marytts.substvars
+
+makefile-clean::
+	$(DEB_MAKE_INVOKE) clean
+	$(RM) -r log debian/tmp-build-maven
+
+pre-build::
+	# Backup files expected to be modified.
+	#set -e ; for i in $(BACKUP); do \
+	#	if [ ! -f "$$i".backup ]; then cp -a "$$i" "$$i".backup; fi ; \
+	#done
+
+clean::
+	#set -e ; for i in $(BACKUP); do \
+	#	if [ -f "$$i".backup ]; then mv -f "$$i".backup "$$i"; fi ; \
+	#done
+
+# Needed by upstream build process
+CDBS_BUILD_DEPENDS += , dpkg-dev (>= 1.16.1~)

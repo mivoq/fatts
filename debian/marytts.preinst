@@ -1,0 +1,43 @@
+#!/bin/sh
+
+set -e;
+
+#DEBHELPER#
+
+if ! getent group marytts >/dev/null; then
+        # Adding system group: marytts.
+        groupadd -r -f marytts >/dev/null
+fi
+
+USER_SHELL=/bin/false
+if [ -x /sbin/nologin ] ; then
+    USER_SHELL=/sbin/nologin
+fi
+
+# creating marytts user if he isn't already there
+if ! getent passwd marytts >/dev/null; then
+        # Adding system user: marytts.
+        useradd \
+          -r \
+          -g marytts \
+	  -M \
+          -d /nonexistent \
+          -c "MaryTTS Server" \
+          -s $USER_SHELL \
+          marytts  >/dev/null
+fi
+
+LOG_READER_GROUP=adm
+if ! getent group "$LOG_READER_GROUP" >/dev/null; then
+    LOG_READER_GROUP=marytts
+fi
+
+if [ ! -d /var/log/marytts ]; then
+        mkdir /var/log/marytts
+        touch /var/log/marytts/server.log
+	chown -R marytts:"$LOG_READER_GROUP" /var/log/marytts
+        chmod 640 /var/log/marytts/server.log
+        chmod 750 /var/log/marytts/
+fi
+
+exit 0

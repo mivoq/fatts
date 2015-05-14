@@ -1,0 +1,113 @@
+
+%package lang-de
+Summary: marytts modules for German language
+Group: Applications/Sound
+Requires: marytts
+%description lang-de
+MaryTTS is an open-source, multilingual Text-to-Speech Synthesis
+platform written in Java.
+
+This package provides the modules required to synthesize speech in
+German.
+
+%files lang-de
+/usr/share/marytts/%{_up_version}/lib/marytts-lang-de-%{_up_version}.jar
+
+%package lang-en
+Summary: marytts modules for English language
+Group: Applications/Sound
+Requires: marytts
+%description lang-en
+MaryTTS is an open-source, multilingual Text-to-Speech Synthesis
+platform written in Java.
+
+This package provides the modules required to synthesize speech in
+English.
+
+%files lang-en
+/usr/share/marytts/%{_up_version}/lib/marytts-lang-en-%{_up_version}.jar
+
+%package lang-fr
+Summary: marytts modules for French language
+Group: Applications/Sound
+Requires: marytts
+%description lang-fr
+MaryTTS is an open-source, multilingual Text-to-Speech Synthesis
+platform written in Java.
+
+This package provides the modules required to synthesize speech in
+French.
+
+%files lang-fr
+/usr/share/marytts/%{_up_version}/lib/marytts-lang-fr-%{_up_version}.jar
+
+%package lang-it
+Summary: marytts modules for Italian language
+Group: Applications/Sound
+Requires: marytts
+%description lang-it
+MaryTTS is an open-source, multilingual Text-to-Speech Synthesis
+platform written in Java.
+
+This package provides the modules required to synthesize speech in
+Italian.
+
+%files lang-it
+/usr/share/marytts/%{_up_version}/lib/marytts-lang-it-%{_up_version}.jar
+
+%package lang-ru
+Summary: marytts modules for Russian language
+Group: Applications/Sound
+Requires: marytts
+%description lang-ru
+MaryTTS is an open-source, multilingual Text-to-Speech Synthesis
+platform written in Java.
+
+This package provides the modules required to synthesize speech in
+Russian.
+
+%files lang-ru
+/usr/share/marytts/%{_up_version}/lib/marytts-lang-ru-%{_up_version}.jar
+
+%package lang-sv
+Summary: marytts modules for Swedish language
+Group: Applications/Sound
+Requires: marytts
+%description lang-sv
+MaryTTS is an open-source, multilingual Text-to-Speech Synthesis
+platform written in Java.
+
+This package provides the modules required to synthesize speech in
+Swedish.
+
+%files lang-sv
+/usr/share/marytts/%{_up_version}/lib/marytts-lang-sv-%{_up_version}.jar
+
+%package lang-te
+Summary: marytts modules for Telugu language
+Group: Applications/Sound
+Requires: marytts
+%description lang-te
+MaryTTS is an open-source, multilingual Text-to-Speech Synthesis
+platform written in Java.
+
+This package provides the modules required to synthesize speech in
+Telugu.
+
+%files lang-te
+/usr/share/marytts/%{_up_version}/lib/marytts-lang-te-%{_up_version}.jar
+
+%package lang-tr
+Summary: marytts modules for Turkish language
+Group: Applications/Sound
+Requires: marytts
+%description lang-tr
+MaryTTS is an open-source, multilingual Text-to-Speech Synthesis
+platform written in Java.
+
+This package provides the modules required to synthesize speech in
+Turkish.
+
+%files lang-tr
+/usr/share/marytts/%{_up_version}/lib/marytts-lang-tr-%{_up_version}.jar
+

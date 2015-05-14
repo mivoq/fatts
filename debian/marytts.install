@@ -1,0 +1,7 @@
+target/marytts-5.2-SNAPSHOT/lib/marytts-runtime-5.2-SNAPSHOT-jar-with-dependencies.jar /usr/share/marytts/5.2-SNAPSHOT/lib/
+target/marytts-5.2-SNAPSHOT/bin/marytts-server /usr/share/marytts/5.2-SNAPSHOT/bin/
+target/marytts-5.2-SNAPSHOT/doc/examples/etc/marytts/log4j.properties /etc/marytts/
+target/marytts-5.2-SNAPSHOT/doc/examples/etc/init.d/marytts-server /etc/init.d/
+target/marytts-5.2-SNAPSHOT/doc/examples/etc/default/marytts-server /etc/default/
+target/marytts-5.2-SNAPSHOT/doc/examples/lib/systemd/system/marytts-server.service /lib/systemd/system/
+

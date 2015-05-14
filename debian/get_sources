@@ -1,0 +1,234 @@
+#!/bin/bash
+
+UPSTREAM_REFERENCE=c82976bffdfadd0b2def748f3091fede7a2013fa
+UPSTREAM_GIT_REVISION=`git log "$UPSTREAM_REFERENCE" | grep commit | head -n 1 | sed -e 's/^commit[[:space:]]*//'`
+UPSTREAM_GIT_DATE=`git log --format=format:'%ci' --max-count=1 "$UPSTREAM_REFERENCE"`
+UPSTREAM_TIMESTAMP=`LC_ALL=C date --date="$UPSTREAM_GIT_DATE" -u +%Y%m%d%H%M%S`
+
+UPSTREAM_VERSION=`grep "<parent>" -A 15 marytts-runtime/pom.xml | grep "<version>" | head -n 1 | sed -e 's#.*<version>\(.*\)</version>.*#\1#g'`
+UPSTREAM_VERSION_STRIPPED=`echo "$UPSTREAM_VERSION" | sed -e 's/-.*//'`
+
+MARYTTS_DEBIAN_VERSION="$UPSTREAM_VERSION_STRIPPED~$UPSTREAM_TIMESTAMP"
+
+NOW_DATE=`LC_ALL=C date +"%a, %d %b %Y %T %z"`
+NOW_TIMESTAMP=`LC_ALL=C date -u +%Y%m%d%H%M%S`
+
+mkdir -p debian/etc.samples/marytts/
+
+cat > debian/marytts.links <<EOF
+/usr/share/marytts/$UPSTREAM_VERSION/bin/marytts-server /usr/bin/marytts-server
+EOF
+
+cat > debian/marytts.install <<EOF
+target/marytts-$UPSTREAM_VERSION/lib/marytts-runtime-$UPSTREAM_VERSION-jar-with-dependencies.jar /usr/share/marytts/$UPSTREAM_VERSION/lib/
+target/marytts-$UPSTREAM_VERSION/bin/marytts-server /usr/share/marytts/$UPSTREAM_VERSION/bin/
+target/marytts-$UPSTREAM_VERSION/doc/examples/etc/marytts/log4j.properties /etc/marytts/
+target/marytts-$UPSTREAM_VERSION/doc/examples/etc/init.d/marytts-server /etc/init.d/
+target/marytts-$UPSTREAM_VERSION/doc/examples/etc/default/marytts-server /etc/default/
+target/marytts-$UPSTREAM_VERSION/doc/examples/lib/systemd/system/marytts-server.service /lib/systemd/system/
+
+EOF
+
+echo > debian/control_lang.in
+echo > debian/rpm_subpackages_lang.spec.in
+
+cat > debian/marytts.spec <<EOF
+Source: marytts_$MARYTTS_DEBIAN_VERSION.orig.tar.gz
+Summary: text-to-speech synthesis server
+Name: marytts
+Version: $MARYTTS_DEBIAN_VERSION
+Release: 1
+Group: Applications/Sound
+License: see /usr/share/doc/marytts/copyright
+Distribution: RedHat
+Packager: Giulio Paci <giulio.paci@mivoq.it>
+BuildArch: noarch
+Requires: java >= 1.7.0
+
+%description
+MaryTTS is an open-source, multilingual Text-to-Speech Synthesis
+platform written in Java.
+
+This package includes the MaryTTS RESTFUL server.
+
+%define _rpmdir ../
+%define _rpmfilename %%{NAME}-%%{VERSION}-%%{RELEASE}.%%{ARCH}.rpm
+%define _unpackaged_files_terminate_build 0
+%define _up_version $UPSTREAM_VERSION
+
+%prep
+rm -fr marytts-%{version}
+mkdir -p marytts-%{version}
+cd marytts-%{version}
+zcat \$RPM_SOURCE_DIR/marytts_%{version}.orig.tar.gz |  tar -xvf - 
+
+%build
+cd \$RPM_BUILD_DIR/marytts-%{version}
+mvn install
+
+%install
+cd \$RPM_BUILD_DIR/marytts-%{version}
+install -m 755 -d %{buildroot}/usr/share/marytts/%{_up_version}/bin
+install -m 755 -d %{buildroot}/usr/share/marytts/%{_up_version}/lib
+install -m 755 -d %{buildroot}%{_bindir}
+install -m 755 -d %{buildroot}/etc/default/
+install -m 755 -d %{buildroot}/etc/marytts/
+install -m 755 -d %{buildroot}/etc/init.d/
+install -m 755 -d %{buildroot}/lib/systemd/system/
+install -m 755 target/marytts-%{_up_version}/bin/* %{buildroot}/usr/share/marytts/%{_up_version}/bin/
+install -m 644 target/marytts-%{_up_version}/lib/* %{buildroot}/usr/share/marytts/%{_up_version}/lib/
+install -m 644 target/marytts-%{_up_version}/doc/examples/etc/default/marytts-server %{buildroot}/etc/default/
+install -m 644 target/marytts-%{_up_version}/doc/examples/etc/marytts/log4j.properties %{buildroot}/etc/marytts/
+install -m 755 target/marytts-%{_up_version}/doc/examples/etc/init.d/marytts-server %{buildroot}/etc/init.d/
+install -m 644 target/marytts-%{_up_version}/doc/examples/lib/systemd/system/marytts-server.service %{buildroot}/lib/systemd/system/
+ln -sf /usr/share/marytts/%{_up_version}/bin/marytts-server %{buildroot}%{_bindir}
+
+%files
+/usr/share/marytts/%{_up_version}/bin/marytts-server
+/usr/share/marytts/%{_up_version}/lib/marytts-runtime-5.2-SNAPSHOT-jar-with-dependencies.jar
+/etc/default/marytts-server
+/etc/marytts/log4j.properties
+/etc/init.d/marytts-server
+/lib/systemd/system/marytts-server.service
+%{_bindir}/marytts-server
+
+%clean
+cd \$RPM_BUILD_DIR/marytts-%{version}
+mvn clean
+
+%pre
+#!/bin/sh
+
+set -e;
+
+if ! getent group marytts >/dev/null; then
+        # Adding system group: marytts.
+        groupadd -r -f marytts >/dev/null
+fi
+
+USER_SHELL=/bin/false
+if [ -x /sbin/nologin ] ; then
+    USER_SHELL=/sbin/nologin
+fi
+
+# creating marytts user if he isn't already there
+if ! getent passwd marytts >/dev/null; then
+        # Adding system user: marytts.
+        useradd \\
+          -r \\
+          -g marytts \\
+	  -M \\
+          -d /nonexistent \\
+          -c "MaryTTS Server" \\
+          -s \$USER_SHELL \\
+          marytts  >/dev/null
+fi
+
+LOG_READER_GROUP=adm
+if ! getent group "\$LOG_READER_GROUP" >/dev/null; then
+    LOG_READER_GROUP=marytts
+fi
+
+if [ ! -d /var/log/marytts ]; then
+        mkdir /var/log/marytts
+        touch /var/log/marytts/server.log
+	chown -R marytts:"\$LOG_READER_GROUP" /var/log/marytts
+        chmod 640 /var/log/marytts/server.log
+        chmod 750 /var/log/marytts/
+fi
+
+exit 0
+
+
+
+%package voice-en-cmu-slt-hsmm
+Summary: English speaker for MaryTTS
+Group: Applications/Sound
+Requires: marytts-lang-en
+%description voice-en-cmu-slt-hsmm
+MaryTTS is an open-source, multilingual Text-to-Speech Synthesis
+platform written in Java.
+
+This package provides the speaker modules required to synthesize speech
+in English.
+
+%files voice-en-cmu-slt-hsmm
+/usr/share/marytts/%{_up_version}/lib/voice-cmu-slt-hsmm-%{_up_version}.jar
+
+################################################################################
+EOF
+
+for i in marytts-lang-*;
+do
+cat > debian/"$i".install <<EOF
+target/marytts-"$UPSTREAM_VERSION"/lib/"$i"-"$UPSTREAM_VERSION".jar /usr/share/marytts/$UPSTREAM_VERSION/lib/
+EOF
+
+MARYTTS_LANG_NAME=`sed -e 's/marytts[.]language[.]..[.]\(.*\)Config/\1/g' "$i"/src/main/resources/META-INF/services/marytts.config.MaryConfig`
+
+cat >> debian/control_lang.in <<EOF
+Package: $i
+Architecture: all
+Depends: \${misc:Depends}, marytts
+Description: marytts modules for $MARYTTS_LANG_NAME language
+ MaryTTS is an open-source, multilingual Text-to-Speech Synthesis
+ platform written in Java.
+ .
+ This package provides the modules required to synthesize speech in
+ $MARYTTS_LANG_NAME.
+
+EOF
+
+REDUCED_NAME=`echo $i | sed -e 's/^marytts-//'`
+cat >> debian/rpm_subpackages_lang.spec.in <<EOF
+%package $REDUCED_NAME
+Summary: marytts modules for $MARYTTS_LANG_NAME language
+Group: Applications/Sound
+Requires: marytts
+%description $REDUCED_NAME
+MaryTTS is an open-source, multilingual Text-to-Speech Synthesis
+platform written in Java.
+
+This package provides the modules required to synthesize speech in
+$MARYTTS_LANG_NAME.
+
+%files $REDUCED_NAME
+/usr/share/marytts/%{_up_version}/lib/marytts-$REDUCED_NAME-%{_up_version}.jar
+
+EOF
+done
+
+cat debian/rpm_subpackages_lang.spec.in >> debian/marytts.spec
+
+cat > debian/marytts-voice-en-cmu-slt-hsmm.install <<EOF
+target/marytts-$UPSTREAM_VERSION/lib/voice-cmu-slt-hsmm-$UPSTREAM_VERSION.jar /usr/share/marytts/$UPSTREAM_VERSION/lib/
+EOF
+
+
+cat > debian/changelog <<EOF
+marytts ($MARYTTS_DEBIAN_VERSION-1) experimental; urgency=low
+
+  * Initial release.
+
+ -- Giulio Paci <giulio.paci@mivoq.it>  $NOW_DATE
+
+EOF
+
+#exit;
+git archive --format=tar "$UPSTREAM_REFERENCE" > marytts_"$MARYTTS_DEBIAN_VERSION".orig.tar
+echo -n "$UPSTREAM_GIT_REVISION" > marytts-common/src/main/resources/marytts/implementation-version.txt
+cat > marytts-common/src/main/resources/marytts/git.properties <<EOF
+#Generated by Git-Commit-Id-Plugin
+#$NOW_DATE
+git.commit.id=$UPSTREAM_GIT_REVISION
+git.commit.time=$UPSTREAM_TIMESTAMP
+git.dirty=true
+git.build.time=$NOW_TIMESTAMP
+EOF
+tar rf marytts_"$MARYTTS_DEBIAN_VERSION".orig.tar marytts-common/src/main/resources/marytts/git.properties
+tar rf marytts_"$MARYTTS_DEBIAN_VERSION".orig.tar marytts-common/src/main/resources/marytts/implementation-version.txt
+tar f marytts_"$MARYTTS_DEBIAN_VERSION".orig.tar --delete  marytts-builder marytts-client marytts-transcription marytts-redstart
+gzip marytts_"$MARYTTS_DEBIAN_VERSION".orig.tar
+
+
+marytts-assembly/assembly-runtime/src/runtime/bin/marytts-server -h |  awk 'BEGIN {print ".TH marytts 1 February, 2015" ; print} /^(NAME|SYNOPSIS|DESCRIPTION|OPTIONS|MARYTTS)/ {print ".SH ";} {print}' | sed -e 's/\([[:space:]]\+\)\(-[^[:space:]=,]\+\)\([[:space:],=]\|$\)/\1\\fB\2\\fR\3/g' -e 's/\([[:space:]=",]\)<\([^>]\+\)>/\1<\\fI\2\\fR>/g' > marytts-assembly/assembly-runtime/src/runtime/doc/man/marytts-server.1

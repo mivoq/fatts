@@ -1,0 +1,2 @@
+version=3
+http://mary.dfki.de/download/index.html https://github.com/marytts/marytts/releases/download/v(?:\d[\d\.]+)/marytts-(\d[\d\.]+)\.(?:tar\.(?:gz|bz2|lzma|xz)|tgz|zip|txz)

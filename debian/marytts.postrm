@@ -1,0 +1,46 @@
+#!/bin/sh
+
+set -e;
+
+#DEBHELPER#
+
+# Try to stop the server in a sane way. If it does not success let the admin
+# do it himself.
+stop_server() {
+  set +e
+  if [ -x /usr/sbin/invoke-rc.d ]; then
+    invoke-rc.d marytts-server stop
+  else
+    /etc/init.d/marytts-server stop
+  fi
+  errno=$?
+  set -e
+
+  if [ "$?" != 0 ]; then
+    echo "Trying to stop the MaryTTS server resulted in exitcode $?." 1>&2
+    echo "Stop it yourself and try again!" 1>&2
+    exit 1
+  fi
+}
+
+case "$1" in
+  purge|remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+      stop_server
+      sleep 1
+  ;;
+  *)
+    echo "postrm called with unknown argument '$1'" 1>&2
+    exit 1
+  ;;
+esac
+
+#
+# - Do NOT purge logs or data if another marytts-sever* package is installed
+# - Remove the mysql user only after all his owned files are purged.
+#   
+if [ "$1" = "purge" -a ! \( -x /usr/bin/marytts-server -o -L /usr/bin/marytts-server \) ]; then
+  rm -rf /var/log/marytts
+  rm -f /var/run/marytts.pid
+fi
+
+exit 0

@@ -1,0 +1,81 @@
+
+Package: marytts-lang-de
+Architecture: all
+Depends: ${misc:Depends}, marytts
+Description: marytts modules for German language
+ MaryTTS is an open-source, multilingual Text-to-Speech Synthesis
+ platform written in Java.
+ .
+ This package provides the modules required to synthesize speech in
+ German.
+
+Package: marytts-lang-en
+Architecture: all
+Depends: ${misc:Depends}, marytts
+Description: marytts modules for English language
+ MaryTTS is an open-source, multilingual Text-to-Speech Synthesis
+ platform written in Java.
+ .
+ This package provides the modules required to synthesize speech in
+ English.
+
+Package: marytts-lang-fr
+Architecture: all
+Depends: ${misc:Depends}, marytts
+Description: marytts modules for French language
+ MaryTTS is an open-source, multilingual Text-to-Speech Synthesis
+ platform written in Java.
+ .
+ This package provides the modules required to synthesize speech in
+ French.
+
+Package: marytts-lang-it
+Architecture: all
+Depends: ${misc:Depends}, marytts
+Description: marytts modules for Italian language
+ MaryTTS is an open-source, multilingual Text-to-Speech Synthesis
+ platform written in Java.
+ .
+ This package provides the modules required to synthesize speech in
+ Italian.
+
+Package: marytts-lang-ru
+Architecture: all
+Depends: ${misc:Depends}, marytts
+Description: marytts modules for Russian language
+ MaryTTS is an open-source, multilingual Text-to-Speech Synthesis
+ platform written in Java.
+ .
+ This package provides the modules required to synthesize speech in
+ Russian.
+
+Package: marytts-lang-sv
+Architecture: all
+Depends: ${misc:Depends}, marytts
+Description: marytts modules for Swedish language
+ MaryTTS is an open-source, multilingual Text-to-Speech Synthesis
+ platform written in Java.
+ .
+ This package provides the modules required to synthesize speech in
+ Swedish.
+
+Package: marytts-lang-te
+Architecture: all
+Depends: ${misc:Depends}, marytts
+Description: marytts modules for Telugu language
+ MaryTTS is an open-source, multilingual Text-to-Speech Synthesis
+ platform written in Java.
+ .
+ This package provides the modules required to synthesize speech in
+ Telugu.
+
+Package: marytts-lang-tr
+Architecture: all
+Depends: ${misc:Depends}, marytts
+Description: marytts modules for Turkish language
+ MaryTTS is an open-source, multilingual Text-to-Speech Synthesis
+ platform written in Java.
+ .
+ This package provides the modules required to synthesize speech in
+ Turkish.
+

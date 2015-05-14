@@ -1,0 +1,39 @@
+Description: avoid source changes caused by maven
+ This patch removes automatic source files generation from maven.
+Author: Giulio Paci <giulio.paci@mivoq.it>
+Forwarded: not-needed
+--- a/marytts-common/pom.xml
++++ b/marytts-common/pom.xml
+@@ -54,7 +54,7 @@
+           </execution>
+         </executions>
+         <configuration>
+-	  <skip>false</skip>
++	  <skip>true</skip>
+           <dateFormat>yyyyMMddHHmmss</dateFormat>
+ 	  <generateGitPropertiesFile>true</generateGitPropertiesFile>
+ 	  <generateGitPropertiesFilename>src/main/resources/marytts/git.properties</generateGitPropertiesFilename>
+@@ -72,23 +72,6 @@
+           </excludeProperties>
+         </configuration>
+       </plugin>
+-		
+-	<plugin>
+-        <groupId>org.apache.maven.plugins</groupId>
+-        <artifactId>maven-antrun-plugin</artifactId>
+-        <version>1.7</version>
+-        <executions>
+-          <execution>
+-            <phase>generate-resources</phase>          
+-            <configuration>
+-              <target>
+-                <echo file="src/main/resources/marytts/implementation-version.txt" message="${buildNumber}" />
+-              </target>
+-            </configuration>
+-            <goals><goal>run</goal></goals>
+-          </execution>
+-        </executions>
+-      </plugin>
+ 	</plugins>
+ 	</build>
+ </project>
