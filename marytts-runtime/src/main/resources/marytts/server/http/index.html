@@ -1,0 +1,144 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+      <title>MIVOQ Web Client</title>
+      <script language="javascript" src="mary.js">
+      </script>
+    </head>
+
+    <body onload="initForm();">
+      <font style="font-family: Verdana">
+      <noscript style="color:red;">JavaScript seems to be disabled! Please enable it to use this interface to MIVOQ!</noscript>
+
+<img src="logo.png" alt="MIVOQ">
+<!--<h1><font style="color:#587D9D">Demo Service</font></h1>-->
+
+
+    <form id="maryWebClient" action="process" method="post">
+
+      <div><div>Input Text:</div>
+      <textarea id="INPUT_TEXT" name="INPUT_TEXT" rows="10" cols="85"></textarea></div>
+      <table>
+        <tr>
+          <td>
+             <input type="button" value="PROCESS" id="PROCESS" style="font-size:11pt; font-weight:bold;" onClick="requestSynthesis();">
+             <input type="button" value="SPEAK" id="SPEAK" style="font-size:11pt; font-weight:bold;" onClick="requestSynthesis();">
+          </td>
+          <td></td>
+
+        </tr>
+      </table>
+    <table>
+        <tr>
+          <td>Voice:</td>
+          <td>
+            <select id="VOICE_SELECTIONS" name="VOICE_SELECTIONS" size="1" onChange="voiceChanged();">
+            </select>
+          </td>
+      </table>
+  <div id="audioDestination"></div>
+
+    <table>
+      <tr>
+        <td>Input Type:
+          <select id="INPUT_TYPE" name="INPUT_TYPE" size="1" onChange="inputTypeChanged();">
+          </select>
+        </td>
+        
+        <td>Output Type:
+          <select id="OUTPUT_TYPE" name="OUTPUT_TYPE" size="1"  onChange="outputTypeChanged();">
+          </select>
+        </td>
+      </tr>
+      </table>
+
+      <div><span id="outputSection">
+	<div id="hideOutputText">Output Text:</div>
+	<textarea id="OUTPUT_TEXT" name="OUTPUT_TEXT" rows="10" cols="85" readonly="true"></textarea>
+      </span></div>
+
+    <table>
+        <tr>
+          <td>
+          	  <div id="showHideEffectsButton">
+                <input type="button" value="Show Audio Effects" id="TOGGLE_EFFECTS" onClick="toggleEffectsVisibility();">
+			  </div></td>
+          <td>
+          </td>
+          <td width="50">
+          </td>
+          <td>
+          
+          </td>
+        </tr>
+      <tr>
+          <td>
+          </td>
+
+          <td>
+			<span id="audioEffectsSection">
+			  <span id="innerAudioEffectsSection" style="display:none;">
+			  <table>
+			   <tr>
+			    <td>
+	              <table id="effectsTable">
+	                <tr>
+	                  <td> </td>
+	                  <td><div id="hideEffects">Effects</div></td> 
+	                  <td><div id="hideParameters">Parameters</div></td>
+	                </tr>
+	              </table>
+	            </td>
+	            <td>
+	              <span id="helpSection">
+	                <table>
+	                  <tr><td><div id="hideHelpTextTitle">Help Text:</div></td></tr>
+	                  <tr><td><textarea name="HELP_TEXT" id="HELP_TEXT" rows="15" cols="50" readonly="true"></textarea></td></tr>
+	                </table>
+	              </span>
+	            </td>
+	           </tr>
+	          </table>
+	          </span>
+            </span>
+          </td>
+
+        </tr>
+      <table>
+        <tr>
+          <td>&nbsp;</td>
+          <td>
+            <select id="exampleTexts" name="exampleTexts" size="1" onChange="exampleChanged();" style="display:none;">
+            </select>
+        	<div id="showHideTargetFeatures">
+		  		<input type="checkbox" id="specifyTargetFeatures">
+		  		Specify target features:
+		  		<input type="text" value="phone stressed accented" id="targetFeatureList">
+			</div>
+          </td>
+        </tr>
+
+        <tr>
+            <td><div id="hideAudioOut">Audio-Out:</div></td>
+            <td>
+              <select name="AUDIO_OUT" id="AUDIO_OUT" size="1" onChange="audioOutChanged();">
+              </select>
+              <div id="showHideModification" style="display:none;">
+            	<input type="checkbox" id="modification">
+            	Apply prosody modification
+              </div>
+            </td>
+        </tr>
+    </table>
+
+        <input type="hidden" id="LOCALE" name="LOCALE" value="">
+        <input type="hidden" id="VOICE" name="VOICE" value="">
+        <input type="hidden" id="AUDIO" name="AUDIO" value="">
+  </form>
+
+
+<small><a href="documentation.html">Interactive documentation of the HTTP interface to Mivoq TTS</a></small>
+
+  </font>
+</body>
+</html>

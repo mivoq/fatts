@@ -1,0 +1,9 @@
+target/
+.settings/
+.project
+.classpath
+tmp/
+log/
+
+# OSX
+.DS_Store

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+Inverse Tag dictionary used for deterministic token like punctuation.
+It is useful to force punctuation symbols to have a specific label.
+In this case the tags corresponds to the symbol and token corresponds to the label.
+-->
+
+<!--
+The complete list of determiministic TAGs has to be reported on 
+ItalianPOSSequenceValidator all_determiministic_elements_list.
+For Italian they are: FB FC FF FS.
+-->
+
+<dictionary case_sensitive="false">
+<!-- FB « » ( ) " ' `-->
+<entry tags="« » ( ) &quot; ' `">
+<token>FB</token>
+</entry>
+<!-- FC : ; - -->
+<entry tags=": ; -">
+<token>FC</token>
+</entry>
+<!-- FF , ... -->
+<entry tags=", ...">
+<token>FF</token>
+</entry>
+<!-- FS . ? ! -->
+<entry tags=". ? !">
+<token>FS</token>
+</entry>
+</dictionary>
+

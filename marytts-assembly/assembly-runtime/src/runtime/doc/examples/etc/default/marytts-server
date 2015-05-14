@@ -1,0 +1,7 @@
+# Defaults for the marytts-server initscript, from marytts
+
+# Set to the MaryTTS port
+PORT=59125
+
+# Set to the user marytts-server should run as
+RUN_AS_USER=marytts

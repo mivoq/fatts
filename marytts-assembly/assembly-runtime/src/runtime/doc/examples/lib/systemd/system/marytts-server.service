@@ -1,0 +1,14 @@
+[Unit]
+Description=MaryTTS server
+
+[Service]
+EnvironmentFile=-/etc/default/marytts-server
+StandardOutput=null
+StandardError=null
+RestartSec=1
+Restart=always
+User=marytts
+ExecStart=/bin/sh -c "/usr/bin/marytts-server -- -Dsocket.port=${PORT} -Dlog.config=/etc/marytts/log4j.properties"
+
+[Install]
+WantedBy=multi-user.target

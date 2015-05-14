@@ -1,0 +1,147 @@
+#!/bin/sh
+
+set -e
+
+BINARY_PATH=`which "$0"`
+BINARY_PATH=`readlink -f "$BINARY_PATH"`
+BINDIR="`dirname "$BINARY_PATH"`"
+MARY_BASE="`(cd "$BINDIR"/.. ; pwd)`"
+MARYTTS_BASE_LIB_PATH="$MARY_BASE"/lib/
+PROGRAM_NAME="`basename "$0"`"
+
+JAVA_VERSION=7
+JAVA_BIN=java
+if ! ("$JAVA_BIN" -version 2>&1 | head -n 1 | grep 1."$JAVA_VERSION".0 > /dev/null); then
+    JAVA_BIN=`find /usr/lib/jvm/ -wholename "*"jre/bin/java  | grep 'java-\(1.\)\?'"$JAVA_VERSION" | head -n 1`
+    if [ ! -x "$JAVA_BIN" ]; then
+	JAVA_BIN=java
+	echo Unable to find java "$JAVA_VERSION", using \""$JAVA_BIN"\" >&2
+    fi
+fi
+
+show_help()
+{
+    cat<<EOF
+NAME
+       $PROGRAM_NAME - launch MaryTTS server
+
+SYNOPSIS
+       $PROGRAM_NAME [options] [-- [maryserver_properties]]
+
+DESCRIPTION
+       This program is used to launch the MaryTTS server.
+
+OPTIONS
+       -h, -?
+            Show this help and exit.
+       -v
+            Enable verbose output.
+       -d
+            Run the server as a daemon.
+       -p <pidfile>
+            Store the server PID in <pidfile>.
+            This option works only if -d is also used.
+            If <pidfile> is present, and the associated process is
+            still running, it will not start a new process and will
+            exit with an error. It is possible to change this
+            behaviour by using the -k option.
+       -k
+            This option makes sense only if -p is also used. By using
+            this option the program will try to kill a running marytts
+            before starting a new one.
+
+MARYTTS PROPERTIES
+       It is possible to specify MaryTTS options using the syntax
+       -D<property_name>=<property_value>.
+
+       Useful properties include:
+
+       -Dsocket.port=<port_number>
+            Change the server port from 59125 to <port_number>
+       -Dlog.config="<log4j_configuration_path>"
+            Configure log4j properties from <log4j_configuration_path>
+            file.
+       -Dlog4j.logger.marytts="<info_level>,<log4j_appender>"
+            Change logger from default "DEBUG,logfile" to
+            "<info_level>,<log4j_appender>".
+            Possible values for <info_level> include OFF, INFO and
+            DEBUG.  Possible values for <log4j_appender> include
+            logfile and stderr.
+EOF
+}
+
+OPTIND=1
+pid_file=""
+other_jvm_args=""
+verbose=false
+daemonize=false
+killifrunning=false
+maxmemory=1g
+while getopts "h?vp:dkm:" opt; do
+    case "$opt" in
+    h|\?)
+        show_help
+        exit 0
+        ;;
+    v)  verbose=true
+        ;;
+    p)  pid_file=$OPTARG
+        ;;
+    d)  daemonize=true
+        ;;
+    m)  maxmemory=1g
+        ;;
+    k)  killifrunning=true
+        ;;
+    esac
+done
+
+shift $((OPTIND-1))
+if [ "$1" = "--" ]
+then
+     shift
+fi
+
+
+if [ "x$verbose" = "xtrue" ]
+then
+	other_jvm_args=-showversion
+fi
+
+if test -f "$pid_file"
+then
+    marytts_pid=`cat "$pid_file"`
+    if kill -0 $marytts_pid > /dev/null 2>&1; then
+	echo "A process is still running with PID $marytts_pid" >&2;
+	if [ "x$killifrunning" = "xtrue" ]
+	then
+	    if ! kill $marytts_pid > /dev/null 2>&1; then
+		if ! kill -0 $marytts_pid > /dev/null 2>&1; then
+		    echo "Could not send SIGTERM to process $marytts_pid" >&2
+		    exit 2
+		fi
+	    fi
+	    sleep 1
+	else
+	    echo "Aborting execution" >&2;
+	    exit 1
+	fi
+    fi
+fi
+
+
+CLASSPATH=`echo "$MARYTTS_BASE_LIB_PATH"voice*.jar "$MARYTTS_BASE_LIB_PATH"marytts-lang-*.jar "$MARYTTS_BASE_LIB_PATH"marytts-runtime*.jar | tr ' ' ':'`
+
+if [ "x$daemonize" = "xtrue" ]
+then
+(
+    (exec "$JAVA_BIN" $other_jvm_args -ea -Xms40m -Xmx"$maxmemory" -cp "$CLASSPATH" -Dmary.base="$MARY_BASE" $* marytts.server.Mary)&
+    marytts_pid=$!
+    if [ "x" != "x$pid_file" ]
+    then
+	echo $marytts_pid > "$pid_file"
+    fi
+)
+else
+    exec "$JAVA_BIN" $other_jvm_args -ea -Xms40m -Xmx"$maxmemory" -cp "$CLASSPATH" -Dmary.base="$MARY_BASE" $* marytts.server.Mary
+fi

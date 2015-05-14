@@ -1,0 +1,52 @@
+.TH marytts 1 February, 2015
+
+.SH 
+NAME
+       marytts-server - launch MaryTTS server
+
+.SH 
+SYNOPSIS
+       marytts-server [options] [-- [maryserver_properties]]
+
+.SH 
+DESCRIPTION
+       This program is used to launch the MaryTTS server.
+
+.SH 
+OPTIONS
+       \fB-h\fR, \fB-?\fR
+            Show this help and exit.
+       \fB-v\fR
+            Enable verbose output.
+       \fB-d\fR
+            Run the server as a daemon.
+       \fB-p\fR <\fIpidfile\fR>
+            Store the server PID in <\fIpidfile\fR>.
+            This option works only if \fB-d\fR is also used.
+            If <\fIpidfile\fR> is present, and the associated process is
+            still running, it will not start a new process and will
+            exit with an error. It is possible to change this
+            behaviour by using the \fB-k\fR option.
+       \fB-k\fR
+            This option makes sense only if \fB-p\fR is also used. By using
+            this option the program will try to kill a running marytts
+            before starting a new one.
+
+.SH 
+MARYTTS PROPERTIES
+       It is possible to specify MaryTTS options using the syntax
+       \fB-D<property_name>\fR=<\fIproperty_value\fR>.
+
+       Useful properties include:
+
+       \fB-Dsocket.port\fR=<\fIport_number\fR>
+            Change the server port from 59125 to <\fIport_number\fR>
+       \fB-Dlog.config\fR="<\fIlog4j_configuration_path\fR>"
+            Configure log4j properties from <\fIlog4j_configuration_path\fR>
+            file.
+       \fB-Dlog4j.logger.marytts\fR="<\fIinfo_level\fR>,<\fIlog4j_appender\fR>"
+            Change logger from default "DEBUG,logfile" to
+            "<\fIinfo_level\fR>,<\fIlog4j_appender\fR>".
+            Possible values for <\fIinfo_level\fR> include OFF, INFO and
+            DEBUG.  Possible values for <\fIlog4j_appender\fR> include
+            logfile and stderr.
