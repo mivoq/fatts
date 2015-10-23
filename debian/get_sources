@@ -1,6 +1,6 @@
 #!/bin/bash
 
-UPSTREAM_REFERENCE=c82976bffdfadd0b2def748f3091fede7a2013fa
+UPSTREAM_REFERENCE=7e42c7c6340d1ed854d6420e3b6120f2e18acc6a
 UPSTREAM_GIT_REVISION=`git log "$UPSTREAM_REFERENCE" | grep commit | head -n 1 | sed -e 's/^commit[[:space:]]*//'`
 UPSTREAM_GIT_DATE=`git log --format=format:'%ci' --max-count=1 "$UPSTREAM_REFERENCE"`
 UPSTREAM_TIMESTAMP=`LC_ALL=C date --date="$UPSTREAM_GIT_DATE" -u +%Y%m%d%H%M%S`
