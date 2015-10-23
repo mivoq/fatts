@@ -1,7 +1,7 @@
-Source: marytts_5.2~20150504125100.orig.tar.gz
+Source: marytts_5.2~20151023170316.orig.tar.gz
 Summary: text-to-speech synthesis server
 Name: marytts
-Version: 5.2~20150504125100
+Version: 5.2~20151023170316
 Release: 1
 Group: Applications/Sound
 License: see /usr/share/doc/marytts/copyright
