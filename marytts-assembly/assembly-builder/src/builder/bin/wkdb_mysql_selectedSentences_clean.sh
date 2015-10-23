@@ -33,9 +33,6 @@ fi
 CONFIG_FILE="`dirname "$1"`/`basename "$1"`"
 . $CONFIG_FILE
 
-FILENAME=$2
-
-
 
 mysql --user="$MYSQLUSER" --password="$MYSQLPASSWD" -e \
 "use wiki; \

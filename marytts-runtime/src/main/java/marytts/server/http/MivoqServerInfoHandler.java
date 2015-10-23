@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.ArrayList;
 import org.json.JSONObject;
+import org.json.JSONArray;
 import java.util.Collection;
 import java.util.Iterator;
 import java.net.URLEncoder;
@@ -31,6 +32,7 @@ import marytts.modules.synthesis.Voice;
 import marytts.unitselection.UnitSelectionVoice;
 import marytts.unitselection.interpolation.InterpolatingVoice;
 import marytts.htsengine.HMMVoice;
+import marytts.server.http.params.effects.ParamParser;
 
 public class MivoqServerInfoHandler extends BaseHttpRequestHandler {
 
@@ -122,7 +124,7 @@ public class MivoqServerInfoHandler extends BaseHttpRequestHandler {
 	    JSONObject version = new JSONObject();
 	    version.put("vendor", "Mivoq SRL");
 	    version.put("product", "FA-TTS (MaryTTS server)");
-	    version.put("fa_tts_api_version", "0.0.1");
+	    version.put("fa_tts_api_version", "0.0.2");
 	    version.put("specification", marytts.Version.specificationVersion());
 	    JSONObject implementation = new JSONObject();
 	    implementation.put("revision", marytts.Version.implementationVersion());
@@ -265,9 +267,10 @@ public class MivoqServerInfoHandler extends BaseHttpRequestHandler {
 		  if(parts[3].equals("all")) {
 		    JSONObject res = new JSONObject();
 		    JSONObject res1 = new JSONObject();
-		    //res1.put("id", "TEXT");
-		    ArrayList<JSONObject> effects = new ArrayList<JSONObject>();
-		    //styles.add(res1);
+		    JSONArray effects = new JSONArray();
+		    for (ParamParser value : MivoqSynthesisRequestHandler.effectsRegistry.values()) {
+		      effects.put(value.toJSONObject());
+		    }
 		    res.put("effects", effects);
 		    return res.toString();
 		  }

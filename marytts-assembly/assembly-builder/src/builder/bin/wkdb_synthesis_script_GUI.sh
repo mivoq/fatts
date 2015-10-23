@@ -41,6 +41,10 @@ export MARY_BASE="`(cd "$BINDIR"/.. ; pwd)`"
 
 cd $WIKIDATAPATH
 
-java -showversion -ea -cp "$MARY_BASE/lib/*" marytts.tools.dbselection.SynthesisScriptGUI
+MARYTTS_BASE_LIB_PATH="$MARY_BASE/lib/"
+
+CLASSPATH=`echo "$MARYTTS_BASE_LIB_PATH"voice*.jar "$MARYTTS_BASE_LIB_PATH"marytts-lang-*.jar "$MARYTTS_BASE_LIB_PATH"marytts-builder*.jar | tr ' ' ':'`
+
+java -showversion -ea -cp "$CLASSPATH" marytts.tools.dbselection.SynthesisScriptGUI
 
 

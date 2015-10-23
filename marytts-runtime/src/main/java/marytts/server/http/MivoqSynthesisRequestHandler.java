@@ -18,6 +18,7 @@
  *
  */
 package marytts.server.http;
+import marytts.server.http.params.effects.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -50,6 +51,8 @@ import marytts.util.http.Address;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.log4j.Logger;
+
+import org.json.*;
 
 /**
  * Provides functionality to process synthesis http requests
@@ -113,17 +116,17 @@ public class MivoqSynthesisRequestHandler extends BaseHttpRequestHandler
       HashMap<String, String> fakeStylesMale = new HashMap<String,String>();
       HashMap<String, String> fakeStylesNeutral = new HashMap<String,String>();
       // "happy" => [ "rate" => "+5%", "pitch" => "+25%" ]
-      fakeStylesFemale.put("happy", "Rate(amount:0.95;)+F0Add(amount:50.0;)");
-      fakeStylesNeutral.put("happy", "Rate(amount:0.95;)+F0Add(amount:37.5;)");
-      fakeStylesMale.put("happy", "Rate(amount:0.95;)+F0Add(amount:25.0;)");
+      fakeStylesFemale.put("happy", "[{'Rate':0.95,'F0Add':50.0}]");
+      fakeStylesNeutral.put("happy", "[{'Rate':0.95,'F0Add':37.5}]");
+      fakeStylesMale.put("happy", "[{'Rate':0.95,'F0Add':25.0}]");
       // "sad" => [ "rate" => "-20%", "pitch" => "-20%" ]
-      fakeStylesFemale.put("sad", "Rate(amount:1.2;)+F0Add(amount:-40.0;)");
-      fakeStylesNeutral.put("sad", "Rate(amount:1.2;)+F0Add(amount:-30.0;)");
-      fakeStylesMale.put("sad", "Rate(amount:1.2;)+F0Add(amount:-20.0;)");
+      fakeStylesFemale.put("sad", "[{'Rate':1.2,'F0Add':-40.0}]");
+      fakeStylesNeutral.put("sad", "[{'Rate':1.2,'F0Add':-30.0}]");
+      fakeStylesMale.put("sad", "[{'Rate':1.2,'F0Add':-20.0}]");
       // "child"
-      fakeStylesFemale.put("child", "HMMTractScaler(amount:1.3;)+F0Add(amount:90.0;)");
-      fakeStylesNeutral.put("child", "HMMTractScaler(amount:1.3;)+F0Add(amount:95.0;)");
-      fakeStylesMale.put("child", "HMMTractScaler(amout:1.3;)+F0Add(amount:100.0;)");
+      fakeStylesFemale.put("child", "[{'HMMTractScaler':1.3,'F0Add':90.0}]");
+      fakeStylesNeutral.put("child", "[{'HMMTractScaler':1.3,'F0Add':95.0}]");
+      fakeStylesMale.put("child", "[{'HMMTractScaler':1.3,'F0Add':100.0}]");
 
       fakeStylesByGender.put(Voice.FEMALE.toString(), fakeStylesFemale );
       fakeStylesByGender.put(Voice.MALE.toString(), fakeStylesMale );
@@ -131,6 +134,74 @@ public class MivoqSynthesisRequestHandler extends BaseHttpRequestHandler
       fakeStylesByGender = Collections.unmodifiableMap(fakeStylesByGender);
       }
     }
+    protected static HashMap<String,ParamParser> effectsRegistry = null;
+    static {
+      if(effectsRegistry == null) {
+    effectsRegistry = new HashMap<String,ParamParser>();
+    effectsRegistry.put("Volume", new DoubleParamParser("Volume", "Volume", "Scale the output volume.", MergeStrategy.MULTIPLY, 1, 0, 10, 2) );
+
+    effectsRegistry.put("TractScaler",
+		 new DoubleParamParser("TractScaler", "Vocal Tract Scaling", "Creates a shortened or lengthened vocal tract effect by shifting the formants. For values less than 1.0, the formants are shifted to lower frequencies resulting in a longer vocal tract (i.e. a deeper voice). Values greater than 1.0 shift the formants to higher frequencies. The result is a shorter vocal tract.", MergeStrategy.MULTIPLY, 1, 0.25, 4.0, 1.5)
+		 );
+    
+    effectsRegistry.put("HMMTractScaler",
+		 new DoubleParamParser("HMMTractScaler", "Vocal Tract Scaling (HMM)", "Creates a shortened or lengthened vocal tract effect by shifting the formants. For values less than 1.0, the formants are shifted to lower frequencies resulting in a longer vocal tract (i.e. a deeper voice). Values greater than 1.0 shift the formants to higher frequencies. The result is a shorter vocal tract.", MergeStrategy.MULTIPLY, 1, 0.25, 4.0, 1.5)
+		 );
+
+    effectsRegistry.put("F0Scale",
+		 new DoubleParamParser("F0Scale", "F0 Scaling", "All voiced F0 values are multiplied by this value. This operation effectively scales the range of f0 values. Note that mean F0 is preserved during the operation. Values greater than 1.0 expand the F0 range (i.e. voice with more variable pitch); Value less than 1.0 compress the F0 range (i.e. more monotonic voice).", MergeStrategy.MULTIPLY, 1, 0, 3.0, 2)
+		 );
+
+    
+    effectsRegistry.put("F0Add",
+		 new DoubleParamParser("F0Add", "F0 mean Shifting", "Shifts the mean F0 value by a given Hz amount.", MergeStrategy.ADD, 0, -300, 300, 50)
+		 );
+
+    
+    effectsRegistry.put("Rate",
+		 new DoubleParamParser("Rate", "Duration scaling", "Scale the duration for synthesized speech output. Values greater than 1.0 will increase the output duration. Values less than 1.0 will produce shorter output.", MergeStrategy.MULTIPLY, 1, 0.1, 3.0, 1.5)
+		 );
+
+    
+    effectsRegistry.put("Whisper",
+		 new DoubleParamParser("Whisper", "Whispered Voice", "Creates a whispered voice by replacing the LPC residual with white noise.", MergeStrategy.ADD, 0, 0, 100, 100)
+		 );
+
+    
+    effectsRegistry.put("Stadium",
+		 new DoubleParamParser("Stadium", "Stadium", "Adds stadium effect by applying a specially designed multi-tap chorus.", MergeStrategy.ADD, 0, 0, 200, 100)
+		 );
+
+    
+    effectsRegistry.put("Robot",
+		 new DoubleParamParser("Robot", "Robotic Voice", "Creates a robotic voice by setting all phases to zero.", MergeStrategy.ADD, 0, 0, 100, 100)
+		 );
+    
+    effectsRegistry.put("JetPilot",
+		 new BooleanParamParser("JetPilot", "Jet pilot", "Filter audio to simulate \"jet pilot\" sound.", MergeStrategy.ADD, false, true)
+		 );
+
+    TParamParser t;
+    t = new TParamParser("FIRFilter", "FIR filtering", "Filters the input signal by an FIR filter.", MergeStrategy.OVERWRITE);
+    EnumParamParser en = new EnumParamParser("type", "Type of filter", "Type of filter", MergeStrategy.OVERWRITE);
+    en.addElement("lowpass", new Integer(1));
+    en.addElement("highpass", new Integer(2));
+    en.addElement("bandreject", new Integer(4));
+    en.addElement("bandpass", new Integer(3));
+    t.addParameter(en);
+    t.addParameter(new DoubleParamParser("fc", "Cutoff frequency", "Cutoff frequency in Hz for lowpass and highpass filters. It should be in the range [0, fs/2.0] where fs is the sampling rate in Hz.", MergeStrategy.OVERWRITE, 0, 0, 1000000, 500));
+    t.addParameter(new DoubleParamParser("fc1", "Lower frequency cutoff", "Lower frequency cutoff in Hz for bandpass and bandreject filters. It should be in the range [0, fs/2.0] where fs is the sampling rate in Hz.", MergeStrategy.OVERWRITE, 0, 0, 1000000, 500));
+    t.addParameter(new DoubleParamParser("fc2", "Higher frequency cutoff", "Higher frequency cutoff in Hz for bandpass and bandreject filters. It should be in the range [0, fs/2.0] where fs is the sampling rate in Hz.", MergeStrategy.OVERWRITE, 0, 0, 1000000, 2000));
+    effectsRegistry.put("FIRFilter", t);
+
+    t = new TParamParser("Chorus", "Multi-Tap Chorus", "Adds chorus effect by summing up the original signal with delayed and amplitude scaled versions. The parameters should consist of delay and amplitude pairs for each tap. A variable number of taps (max 20) can be specified by simply defining more delay-amplitude pairs. Each tap outputs a delayed and gain-scaled version of the original signal. All tap outputs are summed up with the oiginal signal with appropriate gain normalization.", MergeStrategy.OVERWRITE);
+    t.addParameter(new IntegerParamParser("delay1", "Delay for tap #1", "The amount of delay in miliseconds for tap #1.", MergeStrategy.OVERWRITE, 0, 0, 5000, 466));
+    t.addParameter(new DoubleParamParser("amp1", "Amplitude for tap #1", "Relative amplitude of the channel gain as compared to original signal gain for tap #1.", MergeStrategy.OVERWRITE, 1, -5, 5, 0.54));
+    t.addParameter(new IntegerParamParser("delay2", "Delay for tap #2", "The amount of delay in miliseconds for tap #2.", MergeStrategy.OVERWRITE, 0, 0, 5000, 600));
+    t.addParameter(new DoubleParamParser("amp2", "Amplitude for tap #2", "Relative amplitude of the channel gain as compared to original signal gain for tap #2.", MergeStrategy.OVERWRITE, 1, -5, 5, -0.1));
+    t.addParameter(new IntegerParamParser("delay3", "Delay for tap #3", "The amount of delay in miliseconds for tap #3.", MergeStrategy.OVERWRITE, 0, 0, 5000, 250));
+    t.addParameter(new DoubleParamParser("amp3", "Amplitude for tap #3", "Relative amplitude of the channel gain as compared to original signal gain for tap #3.", MergeStrategy.OVERWRITE, 1, -5, 5, 0.3));
+    effectsRegistry.put("Chorus", t);
   /*
 	 Volume(amount:2.0;)
 	 TractScaler(amount:1.5;)
@@ -145,6 +216,8 @@ public class MivoqSynthesisRequestHandler extends BaseHttpRequestHandler
 	 FIRFilter(type:3;fc1:500.0;fc2:2000.0;)
 	 JetPilot()
   */
+      }
+    }
 
     public void process(Address serverAddressAtClient, Map<String, String> queryItems, HttpResponse response)
     {
@@ -300,19 +373,32 @@ public class MivoqSynthesisRequestHandler extends BaseHttpRequestHandler
 	  HashMap<String,String> s = fakeStylesByGender.get(voice.gender().toString());
 	  if( s.containsKey(utteranceStyle) ) {
 	    utteranceStyleEffects = s.get(utteranceStyle);
-	    if (utteranceStyleEffects.length()>0) {
-	      if (utteranceEffects.length()>0) {
-		utteranceEffects = utteranceStyleEffects+"+"+utteranceEffects;
-	      } else {
-		utteranceEffects = utteranceStyleEffects;
-	      }
-	      if (utteranceEffects.length()>0)
-		logger.debug("Audio effects requested: " + utteranceEffects);
-	      else
-		logger.debug("No audio effects requested");
-	    }
 	  }
 	}
+	HashMap<String, Object> effects_values = new HashMap<String, Object>();
+	if (utteranceStyleEffects.length()>0) {
+	  JSONArray effects = new JSONArray( utteranceStyleEffects );
+	  for(int i = 0; i < effects.length(); i++) {
+	    JSONObject obj = effects.getJSONObject(i);
+	    parseEffectsIntoHashMap(effectsRegistry, effects_values, obj);
+	    // System.out.println(toOldStyleEffectsString(registry, effects_values));
+	  }
+	  // System.out.println(toOldStyleEffectsString(registry, effects_values));
+	}
+	if (utteranceEffects.length()>0) {
+	  JSONArray effects = new JSONArray( utteranceEffects );
+	  for(int i = 0; i < effects.length(); i++) {
+	    JSONObject obj = effects.getJSONObject(i);
+	    parseEffectsIntoHashMap(effectsRegistry, effects_values, obj);
+	    // System.out.println(toOldStyleEffectsString(registry, effects_values));
+	  }
+	  // System.out.println(toOldStyleEffectsString(registry, effects_values));
+	}
+	utteranceEffects = toOldStyleEffectsString(effectsRegistry, effects_values);
+	if (utteranceEffects.length()>0)
+	  logger.debug("Audio effects requested: " + utteranceEffects);
+	else
+	  logger.debug("No audio effects requested");
         // Now, the parse is complete.
 
         // Construct audio file format -- even when output is not AUDIO,
@@ -419,6 +505,44 @@ public class MivoqSynthesisRequestHandler extends BaseHttpRequestHandler
         }
     }
 
+
+  private static void parseEffectsIntoHashMap(HashMap<String,ParamParser> registry, HashMap<String, Object> effects_values, JSONObject effects) {
+    for(String name: JSONObject.getNames(effects)) {
+      // System.out.println("----------");
+      // System.out.println(name);
+      ParamParser parser  =  registry.get(name);
+      if(parser != null) {
+	Object param = parser.parse(effects.get(name));
+	// System.out.println(param);
+	if(effects_values.containsKey(name)){
+	  Object o = effects_values.get(name);
+	  param = parser.merge(o, param);
+	}
+	// System.out.println(param);
+	effects_values.put(name, param);
+      }
+    }
+  }
+  private static String toOldStyleEffectsString(HashMap<String,ParamParser> registry, HashMap<String, Object> effects_values) {
+    StringBuilder sb = new StringBuilder();
+    for(String name: effects_values.keySet()) {
+      Object param = effects_values.get(name);
+      if(param != null) {
+	ParamParser parser  =  registry.get(name);
+	if(parser != null) {
+	  param = parser.limit(param);
+	  String s = parser.toOldStyleString(param);
+	  if(s != null) {
+	    if(sb.length()>0) {
+	      sb.append('+');
+	    }
+	    sb.append(s);
+	  }
+	}
+      }
+    }
+    return sb.toString();
+  }
 
     protected String toRequestedAudioEffectsString(Map<String, String> keyValuePairs)
     {

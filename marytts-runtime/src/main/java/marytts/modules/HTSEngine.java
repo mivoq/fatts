@@ -170,10 +170,11 @@ public class HTSEngine extends InternalModule
      * @param d : to get the default voice and locale
      * @param targetFeaturesList : 
      * @param tokensAndBoundaries
+     * @param effectsParameters
      * @return
      * @throws Exception
      */        
-    public MaryData process(MaryData d, List<Target> targetFeaturesList, List<Element> segmentsAndBoundaries, List<Element> tokensAndBoundaries)
+    public MaryData process(MaryData d, List<Target> targetFeaturesList, List<Element> segmentsAndBoundaries, List<Element> tokensAndBoundaries, HMMVoice.HMMEffectsParameters effectsParameters)
     throws Exception
     {
         /** The utterance model, um, is a Vector (or linked list) of Model objects. 
@@ -191,7 +192,7 @@ public class HTSEngine extends InternalModule
         //System.out.println("TARGETFEATURES:" + context);
               
         /* Process label file of Mary context features and creates UttModel um */
-        processTargetList(targetFeaturesList, segmentsAndBoundaries, um, hmmv.getHMMData());
+        processTargetList(targetFeaturesList, segmentsAndBoundaries, um, hmmv.getHMMData(), effectsParameters);
 
         /* Process UttModel */
         /* Generate sequence of speech parameter vectors, generate parameters out of sequence of pdf's */  
@@ -204,7 +205,7 @@ public class HTSEngine extends InternalModule
         
         /* Process generated parameters */
         /* Synthesize speech waveform, generate speech out of sequence of parameters */
-        ais = par2speech.htsMLSAVocoder(pdf2par, hmmv.getHMMData());
+        ais = par2speech.htsMLSAVocoder(pdf2par, hmmv.getHMMData(), effectsParameters);
        
         MaryData output = new MaryData(outputType(), d.getLocale());
         if (d.getAudioFileFormat() != null) {
@@ -281,15 +282,15 @@ public class HTSEngine extends InternalModule
       }     
     }
     
-    public void processUttFromFile(String feaFile, HTSUttModel um, HMMData htsData) throws Exception{
+    public void processUttFromFile(String feaFile, HTSUttModel um, HMMData htsData, HMMVoice.HMMEffectsParameters effectsParameters) throws Exception{
         
       List<Target> targetFeaturesList = getTargetsFromFile(feaFile, htsData);
-      processTargetList(targetFeaturesList, null, um, htsData);
+      processTargetList(targetFeaturesList, null, um, htsData, effectsParameters);
       
     }
    
     /* For stand alone testing. */
-    public AudioInputStream processStr(String context, HMMData htsData)
+    public AudioInputStream processStr(String context, HMMData htsData, HMMVoice.HMMEffectsParameters effectsParameters)
     throws Exception
     {
         HTSUttModel um = new HTSUttModel();
@@ -309,7 +310,7 @@ public class HTSEngine extends InternalModule
         
         /* Process label file of Mary context features and creates UttModel um */
         List<Target> targetFeaturesList = getTargetsFromText(context, htsData);
-        processTargetList(targetFeaturesList, null, um, htsData);
+        processTargetList(targetFeaturesList, null, um, htsData, effectsParameters);
         //processUtt(context, um, htsData);
 
         /* Process UttModel */
@@ -319,7 +320,7 @@ public class HTSEngine extends InternalModule
     
         /* Process generated parameters */
         /* Synthesize speech waveform, generate speech out of sequence of parameters */
-        ais = par2speech.htsMLSAVocoder(pdf2par, htsData);
+        ais = par2speech.htsMLSAVocoder(pdf2par, htsData, effectsParameters);
         
        return ais;
         
@@ -407,9 +408,10 @@ public class HTSEngine extends InternalModule
      * @param segmentsAndBoundaries : if applying external prosody provide acoust params as a list of elements
      * @param um : as a result of this process a utterance model list is created for generation and then realisation
      * @param htsData : parameters and configuration of the voice
+     * @param effectsParameters
      * @throws Exception
      */
-    private void processTargetList(List<Target> targetFeaturesList, List<Element> segmentsAndBoundaries, HTSUttModel um, HMMData htsData)
+    private void processTargetList(List<Target> targetFeaturesList, List<Element> segmentsAndBoundaries, HTSUttModel um, HMMData htsData, HMMVoice.HMMEffectsParameters effectsParameters)
     throws Exception {          
       int i, mstate,frame, k, newStateDuration;
       HTSModel m;
@@ -464,8 +466,10 @@ public class HTSEngine extends InternalModule
              
             if( e.getTagName().contentEquals("ph") ){
               m.setMaryXmlDur(e.getAttribute("d"));
-              // If Duration scaling effect for HMM voice is applied use the htsData.getDurationScale()
-              durVal = Float.parseFloat(m.getMaryXmlDur()) * (float) (htsData.getDurationScale());
+              durVal = Float.parseFloat(m.getMaryXmlDur());
+	      if(effectsParameters != null) {
+		durVal *= effectsParameters.getDurationScale();
+	      }
               //System.out.println("  durVal=" + durVal  + " totalDurGauss=" + (fperiodmillisec * m.getTotalDur()) + "(" + m.getTotalDur() + " frames)" );              
               // get proportion of this duration for each state; m.getTotalDur() contains total duration of the 5 states in frames
               durationsFraction = durVal/(fperiodmillisec * m.getTotalDur());
@@ -653,7 +657,7 @@ public class HTSEngine extends InternalModule
            * list of all the models in the utterance. For each model, it searches in each tree, dur,   
            * cmp, etc, the pdf index that corresponds to a triphone context feature and with           
            * that index retrieves from the ModelSet the mean and variance for each state of the HMM.   */
-          hmm_tts.processUttFromFile(feaFile, um, htsData);
+          hmm_tts.processUttFromFile(feaFile, um, htsData, null);
         
           /* save realised durations in a lab file */             
           FileWriter outputStream = new FileWriter(durFile);
@@ -666,7 +670,7 @@ public class HTSEngine extends InternalModule
           pdf2par.htsMaximumLikelihoodParameterGeneration(um, htsData, parFile, debug);
           
           /* Synthesize speech waveform, generate speech out of sequence of parameters */
-          ais = par2speech.htsMLSAVocoder(pdf2par, htsData);
+          ais = par2speech.htsMLSAVocoder(pdf2par, htsData, null);
      
           System.out.println("Saving to file: " + outWavFile);
           System.out.println("Realised durations saved to file: " + durFile);

@@ -63,7 +63,7 @@ public class JPhonemiser extends marytts.modules.JPhonemiser {
 
       if (hSet.contains(previousElement)) {
 	// force phonetization
-	return "-s";
+	return "CTX-s";
       }
       
       // if t.getPreviousSibling() is a TOKEN, ok continue
@@ -99,21 +99,20 @@ public class JPhonemiser extends marytts.modules.JPhonemiser {
 		  || ( allo.isFricative() && allo.getFeature("cplace").equals("p") ) // "S" or "Z"
 		  || allo.isAffricate() // "tS" or "dZ"
 		  ) {
-	  return "-Iz";
+	  return "CTX-Iz";
 	}
 	// [z] Laura's Greg's Tom's (voiced consonant or vowel before s)
 	else if ( allo.isVoiced() ) {
-	  return "-z";
+	  return "CTX-z";
+	}
+	// s is read voiceless, [s], when it comes after a voiceless consonant
+	// [s] Nick's Pope's Stuart's (voiceless consonant before s)
+	else {
+	  return "CTX-s";
 	}
       }
-      // s is read voiceless, [s], when it comes after a voiceless consonant
-      // [s] Nick's Pope's Stuart's (voiceless consonant before s)
-      else {
-	return "-s";
-      }
     }
-
-    return "";
+    return "CTX-Iz";
   }
 
   
@@ -129,6 +128,10 @@ public class JPhonemiser extends marytts.modules.JPhonemiser {
 		// next word, "'s", to disambiguate its phonetization, while "'s" needs the previous one.
 		String pos = null;
 		if (t != null) {
+		        String text = MaryDomUtils.tokenText(t).toLowerCase();
+		        if(text.equals("'s")) {
+			  return getPosForEndingS(t, hSet);
+			}
 			// use part-of-speech if available
 			if (t.hasAttribute("pos")) {
 				pos = t.getAttribute("pos");
@@ -138,24 +141,19 @@ public class JPhonemiser extends marytts.modules.JPhonemiser {
 				if ((pos != null) && pos.length() != 0) {
 					switch (pos.charAt(0)) {
 					case 'V':
-					  if ( pos.equals("VBZ") && MaryDomUtils.tokenText(t).toLowerCase().equals("'s") )
-					    pos = pos + getPosForEndingS(t, hSet);
-					  else
 					    pos = "VB";
 					  break;
-
-					case 'P':
-					  if ( pos.equals("POS") && MaryDomUtils.tokenText(t).toLowerCase().equals("'s") )
-					    pos = "POS" + getPosForEndingS(t, hSet);
-					  else if ( pos.equals("PRP") && MaryDomUtils.tokenText(t).toLowerCase().equals("'s") )
-					    pos = "PRP" + getPosForEndingS(t, hSet);
-					  break;
-
 					case 'N':
 						pos = "NN";
 						break;
+					case 'J':
+						pos = "JJ";
+						break;
+					case 'R':
+						pos = "R";
+						break;
 					case 'D':
-					  if (MaryDomUtils.tokenText(t).toLowerCase().equals("the")) {
+					  if (text.equals("the")) {
 					    if (t.getNextSibling()!=null) {
 
 					      // if hSet is null, create it

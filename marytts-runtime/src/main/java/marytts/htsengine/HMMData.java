@@ -149,17 +149,6 @@ public class HMMData {
     private double gvWeightMag = 1.0;
     
     private boolean useAcousticModels = false; /* true is using AcousticModeller, is true for MARY 4.1 voices */
-  
-    /** variables for controlling generation of speech in the vocoder                
-     * these variables have default values but can be fixed and read from the      
-     * audio effects component.                                              [Default][min--max]   */
-    private double f0Std   = 1.0;   /* variable for f0 control, multiply f0      [1.0][0.0--5.0]   */
-    private double f0Mean  = 0.0;   /* variable for f0 control, add f0           [0.0][0.0--100.0] */
-    private double length  = 0.0;   /* total number of frame for generated speech                  */
-	                                /* length of generated speech (in seconds)   [N/A][0.0--30.0]  */
-    private double durationScale = 1.0; /* less than 1.0 is faster and more than 1.0 is slower, min=0.1 max=3.0 */
-    
-    private double alphaVocalTractScalerAmount = 1.0; // 
 	
 	/** Tree files and TreeSet object */
 	private InputStream treeDurStream;         /* durations tree file */
@@ -214,11 +203,6 @@ public class HMMData {
 	public double getUV() { return  uv; }
 	public boolean getAlgnst() { return algnst; }
 	public boolean getAlgnph() { return algnph; }
-
-    public double getF0Std() { return f0Std; }
-    public double getF0Mean() { return f0Mean; }
-    public double getLength() { return length; }
-    public double getDurationScale() { return durationScale; }
     
 	public InputStream getTreeDurStream() { return treeDurStream; } 
 	public InputStream getTreeLf0Stream() { return treeLf0Stream; } 
@@ -274,37 +258,6 @@ public class HMMData {
     public void setBeta(double dval){ beta = dval; }
     public void setStage(int ival){ stage = ival; }
     public void setUseLogGain(boolean bval){ useLogGain = bval; }
-    
-    /* These variables have default values but can be modified with setting in 
-     * audio effects component. */
-    public void setF0Std(double dval) {
-        /* default=1.0, min=0.0, max=3.0 */
-        if( dval >= 0.0 && dval <= 3.0 )
-          f0Std = dval;
-        else
-          f0Std = 1.0;
-    }
-    public void setF0Mean(double dval) {
-        /* default=0.0, min=-300.0, max=300.0 */
-        if( dval >= -300.0 && dval <= 300.0 )
-          f0Mean = dval; 
-        else
-          f0Mean = 0.0;
-    }
-    public void setLength(double dval) { length = dval; }
-    
-    public void setDurationScale(double dval) {
-        /* default=1.0, min=0.1, max=3.0 */
-        if( dval >= 0.1 && dval <= 3.0 )
-          durationScale = dval; 
-        else
-          durationScale = 1.0;
-        //System.out.println("durationScale: "+ durationScale);
-    }
-    
-    public void setVocalTractScale(double dval) {
-    	alphaVocalTractScalerAmount = dval;
-    }
     
           
     public CartTreeSet getCartTreeSet() { return cart; }  
@@ -516,7 +469,7 @@ public class HMMData {
           s.useLocale(Locale.US);
           
           logger.debug("reading mixed excitation filters");
-          while ( s.hasNext("#") ) {  /* skip comment lines */
+          while ( s.hasNext("#.*") ) {  /* skip comment lines */
             line = s.nextLine(); 
             //System.out.println("comment: " + line ); 
           }
@@ -541,12 +494,5 @@ public class HMMData {
         logger.debug("initMixedExcitation: numFilters = " + numFilters + "  orderFilters = " + orderFilters);
         
     } /* method readMixedExcitationFiltersFile() */
-
-	public double getAlphaVocalTractScalerAmount() {
-		// TODO Auto-generated method stub
-		return alphaVocalTractScalerAmount;
-	}
-
-
 	
 }

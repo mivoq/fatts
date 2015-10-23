@@ -89,7 +89,7 @@ public class InterpolatingSynthesizer implements WaveformSynthesizer
     /**
      * {@inheritDoc}
      */
-    public AudioInputStream synthesize(List<Element> tokensAndBoundaries, Voice voice, String outputParams)
+    public AudioInputStream synthesize(List<Element> tokensAndBoundaries, Voice voice, String outputParams, Object effectsParams)
         throws SynthesisException
     {
         if (tokensAndBoundaries.size() == 0) return null;

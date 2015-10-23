@@ -95,7 +95,8 @@ public class VocalizationSynthesizer {
     
     /**
      * Handle a request for synthesis of vocalization
-     * @param voice the selected voice 
+     * @param voice the selected voice
+     * @param effectsParameters effects parameters
      * @param aft AudioFileFormat of the output AudioInputStream
      * @param domElement target xml element ('vocalization' element)
      * @return AudioInputStream of requested vocalization
@@ -103,24 +104,25 @@ public class VocalizationSynthesizer {
      * @throws IllegalArgumentException if domElement contains 'variant' attribute value 
      *         is greater than available number of vocalizations  
      */
-    public AudioInputStream synthesize(Voice voice, AudioFileFormat aft, Element domElement) throws Exception{
+    public AudioInputStream synthesize(Voice voice, Object effectsParameters, AudioFileFormat aft, Element domElement) throws Exception{
         
         if(!voice.hasVocalizationSupport()) return null;
         
         if (domElement.hasAttribute("variant")) {
-            return synthesizeVariant(aft, domElement);
+            return synthesizeVariant(effectsParameters, aft, domElement);
         }
         
         if ( f0ContourImposeSupport ) {
-            return synthesizeImposedIntonation(aft, domElement);
+            return synthesizeImposedIntonation(effectsParameters, aft, domElement);
         }
         
-        return synthesizeVocalization(aft, domElement);
+        return synthesizeVocalization(effectsParameters, aft, domElement);
     }
     
     
     /**
      * Synthesize a "variant" vocalization
+     * @param effectsParameters effects parameters
      * @param aft AudioFileFormat of the output AudioInputStream
      * @param domElement target 'vocalization' xml element
      * @return AudioInputStream of requested vocalization
@@ -128,7 +130,7 @@ public class VocalizationSynthesizer {
      * @throws IllegalArgumentException if domElement contains 'variant' attribute value 
      *         is greater than available number of vocalizations 
      */
-    private AudioInputStream synthesizeVariant(AudioFileFormat aft, Element domElement) throws SynthesisException {
+    private AudioInputStream synthesizeVariant(Object effectsParameters, AudioFileFormat aft, Element domElement) throws SynthesisException {
         
         int numberOfBackChannels = unitFileReader.getNumberOfUnits();
         int backchannelNumber  = 0;
@@ -141,35 +143,37 @@ public class VocalizationSynthesizer {
             throw new IllegalArgumentException("This voice has "+numberOfBackChannels+ " backchannels only. so it doesn't support unit number "+backchannelNumber);
         }
         
-        return synthesizeSelectedVocalization(backchannelNumber, aft, domElement);
+        return synthesizeSelectedVocalization(backchannelNumber, effectsParameters, aft, domElement);
     }
 
     /**
      * Synthesize a vocalization which fits better for given target
+     * @param effectsParameters effects parameters
      * @param aft AudioFileFormat of the output AudioInputStream
      * @param domElement target 'vocalization' xml element
      * @return AudioInputStream output audio
      * @throws SynthesisException if it can't synthesize vocalization
      */
-    private AudioInputStream synthesizeVocalization(AudioFileFormat aft, Element domElement) throws SynthesisException {
+    private AudioInputStream synthesizeVocalization(Object effectsParameters, AudioFileFormat aft, Element domElement) throws SynthesisException {
         
         int numberOfBackChannels = unitFileReader.getNumberOfUnits();
         int backchannelNumber = vSelector.getBestMatchingCandidate(domElement);
         // here it is a bug, if getBestMatchingCandidate select a backchannelNumber greater than numberOfBackChannels
         assert backchannelNumber < numberOfBackChannels : "This voice has "+numberOfBackChannels+ " backchannels only. so it doesn't support unit number "+backchannelNumber;
         
-        return synthesizeSelectedVocalization(backchannelNumber, aft, domElement);
+        return synthesizeSelectedVocalization(backchannelNumber, effectsParameters, aft, domElement);
     }
 
     /**
      * Synthesize a vocalization which fits better for given target, 
      * in addition, impose intonation from closest best vocalization according to given feature definition for intonation selection
+     * @param effectsParameters effects parameters
      * @param aft AudioFileFormat of the output AudioInputStream
      * @param domElement target 'vocalization' xml element
      * @return AudioInputStream output audio
      * @throws SynthesisException if it can't synthesize vocalization
      */
-    private AudioInputStream synthesizeImposedIntonation(AudioFileFormat aft, Element domElement) throws SynthesisException {
+    private AudioInputStream synthesizeImposedIntonation(Object effectsParameters, AudioFileFormat aft, Element domElement) throws SynthesisException {
         
 
         SourceTargetPair imposeF0Data = vSelector.getBestCandidatePairtoImposeF0(domElement);
@@ -179,10 +183,10 @@ public class VocalizationSynthesizer {
         logger.debug("Synthesizing candidate "+sourceIndex+" with intonation contour "+targetIndex);
         
         if ( targetIndex == sourceIndex ) {
-            return synthesizeSelectedVocalization(sourceIndex, aft, domElement);
+            return synthesizeSelectedVocalization(sourceIndex, effectsParameters, aft, domElement);
         }
         
-        return imposeF0ContourOnVocalization(sourceIndex, targetIndex, aft, domElement);
+        return imposeF0ContourOnVocalization(sourceIndex, targetIndex, effectsParameters, aft, domElement);
     }
 
     
@@ -190,12 +194,13 @@ public class VocalizationSynthesizer {
      * Impose a target f0 contour onto a (source) unit
      * @param sourceIndex unit index of segmentalform unit
      * @param targetIndex unit index of target f0 contour
+     * @param effectsParameters effects parameters
      * @param aft AudioFileFormat of the output AudioInputStream
      * @param domElement target 'vocalization' xml element
      * @return AudioInputStream of requested vocalization
      * @throws SynthesisException if no data can be read at the given target time or if audio processing fails
      */
-    private AudioInputStream imposeF0ContourOnVocalization(int sourceIndex, int targetIndex, 
+    private AudioInputStream imposeF0ContourOnVocalization(int sourceIndex, int targetIndex, Object effectsParameters,
             AudioFileFormat aft, Element domElement) throws SynthesisException {
         
         int numberOfBackChannels = unitFileReader.getNumberOfUnits();
@@ -222,7 +227,7 @@ public class VocalizationSynthesizer {
             domElement.appendChild(element);
         }
         
-        return this.vSynthesizer.synthesizeUsingImposedF0(sourceIndex, targetIndex, aft);
+        return this.vSynthesizer.synthesizeUsingImposedF0(sourceIndex, targetIndex, effectsParameters, aft);
     }
     
     
@@ -235,7 +240,7 @@ public class VocalizationSynthesizer {
      * @throws SynthesisException if it can't synthesize vocalization
      * @throws IllegalArgumentException if given backchannelNumber > no. of available vocalizations
      */
-    private AudioInputStream synthesizeSelectedVocalization(int backchannelNumber, AudioFileFormat aft, Element domElement) throws SynthesisException{
+    private AudioInputStream synthesizeSelectedVocalization(int backchannelNumber, Object effectsParameters, AudioFileFormat aft, Element domElement) throws SynthesisException{
         
         int numberOfBackChannels = unitFileReader.getNumberOfUnits();
         if(backchannelNumber >= numberOfBackChannels){
@@ -256,7 +261,7 @@ public class VocalizationSynthesizer {
             domElement.appendChild(element);
         }
         
-        return this.vSynthesizer.synthesize(backchannelNumber, aft);
+        return this.vSynthesizer.synthesize(backchannelNumber, effectsParameters, aft);
     }
 
  

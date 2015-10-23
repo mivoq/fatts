@@ -134,7 +134,7 @@ public class UnitSelectionSynthesizer implements WaveformSynthesizer
                 Element el = null;
                 while ((el = (Element)tw.nextNode()) != null)
                     tokensAndBoundaries.add(el);
-                AudioInputStream ais = synthesize(tokensAndBoundaries, unitSelVoice, null);
+                AudioInputStream ais = synthesize(tokensAndBoundaries, unitSelVoice, null, null);
                 assert ais != null;
             } else {
                 logger.debug("No example text -- no power-on self test!");
@@ -149,7 +149,7 @@ public class UnitSelectionSynthesizer implements WaveformSynthesizer
      /**
       * {@inheritDoc}
       */
-    public AudioInputStream synthesize(List<Element> tokensAndBoundaries, Voice voice, String outputParams)
+  public AudioInputStream synthesize(List<Element> tokensAndBoundaries, Voice voice, String outputParams, Object effectsParams)
         throws SynthesisException
     {
         assert voice instanceof UnitSelectionVoice;

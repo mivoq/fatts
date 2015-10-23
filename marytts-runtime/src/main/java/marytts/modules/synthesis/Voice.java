@@ -497,10 +497,10 @@ public class Voice
      * providing this voice.
      * @param outputParams 
      */
-    public AudioInputStream synthesize(List<Element> tokensAndBoundaries, String outputParams)
+    public AudioInputStream synthesize(List<Element> tokensAndBoundaries, String outputParams, Object effectsParams)
         throws SynthesisException
     {
-        return synthesizer.synthesize(tokensAndBoundaries, this, outputParams);
+        return synthesizer.synthesize(tokensAndBoundaries, this, outputParams, effectsParams);
     }
     
     /**

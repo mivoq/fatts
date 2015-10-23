@@ -162,7 +162,7 @@ public class Synthesis extends InternalModule
                 if(v != null){
                     Voice newvoice = Voice.getVoice(v);
                     if(newvoice != null && newvoice.hasVocalizationSupport()){
-                        AudioInputStream ais = newvoice.getVocalizationSynthesizer().synthesize(newvoice, d.getAudioFileFormat(), element);
+		      AudioInputStream ais = newvoice.getVocalizationSynthesizer().synthesize(newvoice, null, d.getAudioFileFormat(), element);
                         result.appendAudio(ais);
                     }
                 }
@@ -256,11 +256,11 @@ public class Synthesis extends InternalModule
         EffectsApplier ef = new EffectsApplier();
 
         //HMM-only effects need to get their parameters prior to synthesis
-        ef.setHMMEffectParameters(voice, currentEffect);
+        Object effectsParams = ef.setHMMEffectParameters(voice, currentEffect);
         //
         
         AudioInputStream ais = null;
-        ais = voice.synthesize(tokensAndBoundaries, outputParams);
+        ais = voice.synthesize(tokensAndBoundaries, outputParams, effectsParams);
         if (ais == null) return null;
         // Conversion to targetFormat required?
         if (!ais.getFormat().matches(targetFormat)) {

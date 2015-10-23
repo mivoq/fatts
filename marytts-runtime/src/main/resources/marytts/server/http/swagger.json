@@ -1,0 +1,552 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "FA-TTS API",
+        "description": "Flexible and Adaptive Text-To-Speech API.",
+        "version": "0.0.2"
+    },
+    "schemes": [
+        "http"
+    ],
+    "basePath": "/",
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "/say": {
+            "get": {
+                "produces": [
+                    "audio"
+                ],
+                "summary": "Produce speech.",
+                "description": "Produces speech file from parameters. The system will try to fullfill the request, if possible, or to produce some speech anyway if not possible. An error will be returned if the system decides that it is not possible to produce any speech with the provided parameters.\n",
+                "parameters": [
+                    {
+                        "name": "input[type]",
+                        "in": "query",
+                        "description": "Input type, TEXT support is mandatory",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "input[content]",
+                        "in": "query",
+                        "description": "Input content",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "input[locale]",
+                        "in": "query",
+                        "description": "Input locale. It is optional, but required by some input types (e.g., TEXT)",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "output[type]",
+                        "in": "query",
+                        "description": "Output type, AUDIO support is mandatory",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "output[format]",
+                        "in": "query",
+                        "description": "Output format, specify the format for a given output type (e.g., WAVE for AUDIO type)",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "voice[gender]",
+                        "in": "query",
+                        "description": "Desired voice gender",
+                        "required": false,
+                        "type": "string",
+                        "enum": [
+                            "female",
+                            "male",
+                            "neutral"
+                        ]
+                    },
+                    {
+                        "name": "voice[age]",
+                        "in": "query",
+                        "description": "Desired voice age (>= 0)",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "voice[variant]",
+                        "in": "query",
+                        "description": "When several voices can be used, this parameter select the specific voice (>= 1)",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "voice[name]",
+                        "in": "query",
+                        "description": "Preferred voices, ordered space separated list of voices id; the first has the highest priority. Please note that gender and other paramers have higher priority.",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "utterance[style]",
+                        "in": "query",
+                        "description": "Desired voice style",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "utterance[effects]",
+                        "in": "query",
+                        "description": "Desired voice effects",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "Audio"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "default": {
+                        "description": "Unexpected error"
+                    }
+                }
+            }
+        },
+        "/info/version": {
+            "get": {
+                "summary": "FA-TTS server version.",
+                "description": "Requests server FA-TTS server information.\nThe only compulsory field of the response is fa_tts_api_version, that can be used to assess API compatibility.\n",
+                "tags": [
+                    "Info"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/Version"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error"
+                    }
+                }
+            }
+        },
+        "/info/locales/all": {
+            "get": {
+                "summary": "Supported input locales.",
+                "description": "Requests the list of all the supported input locales. The server may decide to provide only part of the list; if this happens the \"next\" field should point to the next chunk of the list.\n",
+                "tags": [
+                    "Locales",
+                    "Info"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/Locales"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error"
+                    }
+                }
+            }
+        },
+        "/info/voices/all": {
+            "get": {
+                "summary": "Available voices supporting the given locale.",
+                "description": "Requests the list of all the available voices. The server may decide to provide only part of the list; if this happens the \"next\" field should point to the next chunk of the list.\n",
+                "tags": [
+                    "Voices",
+                    "Info"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/Voices"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error"
+                    }
+                }
+            }
+        },
+        "/info/voices/locale/{id}": {
+            "get": {
+                "summary": "Available voices supporting the given locale.",
+                "description": "Requests the list of all the available voices strictly supporting the given locale (i.e.: without approximations). The server may decide to provide only part of the list; if this happens the \"next\" field should point to the next chunk of the list.\n",
+                "tags": [
+                    "Voices",
+                    "Info"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Locale id",
+                        "type": "string",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/Voices"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error"
+                    }
+                }
+            }
+        },
+        "/info/voice/{voice}/inputs/all": {
+            "get": {
+                "summary": "Supported inputs for the given voice.",
+                "description": "Requests information about possible inputs for the given voice.\n",
+                "tags": [
+                    "Voices",
+                    "Info"
+                ],
+                "parameters": [
+                    {
+                        "name": "voice",
+                        "in": "path",
+                        "description": "Voice id",
+                        "type": "string",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/Inputs"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error"
+                    }
+                }
+            }
+        },
+        "/info/voice/{voice}/outputs/all": {
+            "get": {
+                "summary": "Supported outputs for the given voice.",
+                "description": "Requests information about possible outputs for the given voice.\n",
+                "tags": [
+                    "Voices",
+                    "Info"
+                ],
+                "parameters": [
+                    {
+                        "name": "voice",
+                        "in": "path",
+                        "description": "Voice id",
+                        "type": "string",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/Outputs"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error"
+                    }
+                }
+            }
+        },
+        "/info/voice/{voice}/styles/all": {
+            "get": {
+                "summary": "Supported styles for the given voice.",
+                "description": "Requests information about possible styles for the given voice.\n",
+                "tags": [
+                    "Voices",
+                    "Info"
+                ],
+                "parameters": [
+                    {
+                        "name": "voice",
+                        "in": "path",
+                        "description": "Voice id",
+                        "type": "string",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/Styles"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error"
+                    }
+                }
+            }
+        },
+        "/info/voice/{voice}/effects/all": {
+            "get": {
+                "summary": "Supported effects for the given voice.",
+                "description": "Requests information about possible effects for the given voice.\n",
+                "tags": [
+                    "Voices",
+                    "Info"
+                ],
+                "parameters": [
+                    {
+                        "name": "voice",
+                        "in": "path",
+                        "description": "Voice id",
+                        "type": "string",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/Effects"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "Version": {
+            "properties": {
+                "fa_tts_api_version": {
+                    "type": "string",
+                    "description": "MAJOR.MINOR.PATCH version string. Additional labels may be used for minor changes. Versions with the same MAJOR.MINOR numbers should be API backward compatible."
+                }
+            }
+        },
+        "VoiceDescription": {
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "gender": {
+                    "type": "string",
+                    "description": "one of \"female\", \"male\" or \"neutral\""
+                },
+                "locales": {
+                    "type": "array",
+                    "description": "List of supported locales",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "Voices": {
+            "properties": {
+                "voices": {
+                    "type": "array",
+                    "description": "List of voices",
+                    "items": {
+                        "$ref": "#/definitions/VoiceDescription"
+                    }
+                },
+                "next": {
+                    "type": "string",
+                    "description": "if defined, an URL to the next chunk of the list"
+                }
+            }
+        },
+        "Locales": {
+            "properties": {
+                "locales": {
+                    "type": "array",
+                    "description": "List of supported locales",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "next": {
+                    "type": "string",
+                    "description": "if defined, an URL to the next chunk of the list"
+                }
+            }
+        },
+        "Inputs": {
+            "properties": {
+                "inputs": {
+                    "type": "array",
+                    "description": "List of Input types",
+                    "items": {
+                        "type": "object",
+                        "description": "Input type",
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "description": "ID of the Input type"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "Outputs": {
+            "properties": {
+                "outputs": {
+                    "type": "array",
+                    "description": "List of Output types",
+                    "items": {
+                        "$ref": "#/definitions/OutputTypeDescription"
+                    }
+                }
+            }
+        },
+        "OutputTypeDescription": {
+            "description": "Output type description",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": "ID of the Output type"
+                },
+                "formats": {
+                    "type": "array",
+                    "description": "List of formats for the Output type",
+                    "items": {
+                        "type": "object",
+                        "description": "Format",
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "description": "ID of the Format type"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "Styles": {
+            "properties": {
+                "styles": {
+                    "type": "array",
+                    "description": "List of styles descriptions",
+                    "items": {
+                        "$ref": "#/definitions/StyleDescription"
+                    }
+                }
+            }
+        },
+        "StyleDescription": {
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": "ID of the style"
+                }
+            }
+        },
+        "Effects": {
+            "properties": {
+                "effects": {
+                    "type": "array",
+                    "description": "List of effects descriptions",
+                    "items": {
+                        "$ref": "#/definitions/EffectDescription"
+                    }
+                }
+            }
+        },
+        "EffectDescription": {
+            "properties": {
+                "id": {
+                    "required": true,
+                    "type": "string",
+                    "description": "An identifier to be used to refer to the effect"
+                },
+                "type": {
+                    "required": true,
+                    "type": "enum",
+                    "description": "Expected value type for the effect",
+                    "enum": [
+                        "double",
+                        "integer",
+                        "boolean",
+                        "enum",
+                        "T"
+                    ]
+                },
+                "merge": {
+                    "required": true,
+                    "type": "enum",
+                    "description": "Merge strategy specify how the effect acts when applied multiple times",
+                    "enum": [
+                        "add",
+                        "multiply",
+                        "overwrite",
+                        "natural",
+                        "custom"
+                    ]
+                },
+                "name": {
+                    "required": false,
+                    "type": "string",
+                    "description": "A human readable name for the effect"
+                },
+                "description": {
+                    "required": false,
+                    "type": "string",
+                    "description": "A text that describes how the effect is supposed to act and to be used"
+                },
+                "sample": {
+                    "required": false,
+                    "type": "undefined",
+                    "description": "A sample value so that the effect is easy to notice"
+                },
+                "identity": {
+                    "required": false,
+                    "type": "undefined",
+                    "description": "A sample value so that the effect does not have any effect"
+                },
+                "min": {
+                    "required": false,
+                    "type": "undefined",
+                    "description": "The minimum allowed value, values below it will be reported to this value"
+                },
+                "max": {
+                    "required": false,
+                    "type": "undefined",
+                    "description": "The maximum allowed value, values above it will be reported to this value"
+                },
+                "enum": {
+                    "required": false,
+                    "type": "array",
+                    "description": "List of allowed values",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "attributes": {
+                    "required": false,
+                    "type": "array",
+                    "description": "List of attributes for the object (expressed in term of Effect descriptions)",
+                    "items": {
+                        "$ref": "#/definitions/EffectDescription"
+                    }
+                }
+            }
+        }
+    }
+}

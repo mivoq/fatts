@@ -124,12 +124,13 @@ public class HNMSynthesisTechnology extends VocalizationSynthesisTechnology {
     /**
      * Synthesize given vocalization (i.e. unit-selection)  
      * @param unitIndex unit index
+     * @param effectsParameters effects parameters
      * @param aft audio file format
      * @return AudioInputStream of synthesized vocalization
      * @throws SynthesisException if failed to synthesize vocalization
      */
     @Override
-    public AudioInputStream synthesize(int backchannelNumber, AudioFileFormat aft) throws SynthesisException {
+    public AudioInputStream synthesize(int backchannelNumber, Object effectsParameters, AudioFileFormat aft) throws SynthesisException {
         
         int numberOfBackChannels = unitFileReader.getNumberOfUnits();
         if(backchannelNumber >= numberOfBackChannels){
@@ -156,30 +157,32 @@ public class HNMSynthesisTechnology extends VocalizationSynthesisTechnology {
     /**
      * Re-synthesize given vocalization using HNM technology  
      * @param unitIndex unit index
+     * @param effectsParameters effects parameters
      * @param aft audio file format
      * @return AudioInputStream of synthesized vocalization
      * @throws SynthesisException if failed to synthesize vocalization
      */
     @Override
-    public AudioInputStream reSynthesize( int backchannelNumber, AudioFileFormat aft ) throws SynthesisException{
+    public AudioInputStream reSynthesize( int backchannelNumber, Object effectsParameters, AudioFileFormat aft ) throws SynthesisException{
         float[] pScalesArray = {1.0f};
         float[] tScalesArray = {1.0f};
         float[] tScalesTimes = {1.0f};
         float[] pScalesTimes = {1.0f};
         return synthesizeUsingF0Modification(backchannelNumber, pScalesArray, pScalesTimes, 
-                tScalesArray, tScalesTimes, aft);
+                tScalesArray, tScalesTimes, effectsParameters, aft);
     }
     
     /**
      * Impose target intonation contour on given vocalization using HNM technology 
      * @param sourceIndex unit index of vocalization 
      * @param targetIndex unit index of target intonation
+     * @param effectsParameters effects parameters
      * @param aft audio file format
      * @return AudioInputStream of synthesized vocalization
      * @throws SynthesisException if failed to synthesize vocalization
      */
     @Override
-    public AudioInputStream synthesizeUsingImposedF0(int sourceIndex, int targetIndex, AudioFileFormat aft) throws SynthesisException{
+    public AudioInputStream synthesizeUsingImposedF0(int sourceIndex, int targetIndex, Object effectsParameters, AudioFileFormat aft) throws SynthesisException{
         
         if ( !f0ContourImposeSupport ) {
             throw new SynthesisException("Mary configuration of this voice doesn't support intonation contour imposition");
@@ -195,11 +198,11 @@ public class HNMSynthesisTechnology extends VocalizationSynthesisTechnology {
         double[] sourceF0coeffs = this.vIntonationReader.getIntonationCoeffs(sourceIndex);
         
         if ( targetF0coeffs == null || sourceF0coeffs == null ) {
-            return reSynthesize(sourceIndex, aft);
+            return reSynthesize(sourceIndex, effectsParameters, aft);
         }
         
         if ( targetF0coeffs.length == 0 || sourceF0coeffs.length == 0 ) {
-            return reSynthesize(sourceIndex, aft);
+            return reSynthesize(sourceIndex, effectsParameters, aft);
         }
         
         double[] targetF0 = Polynomial.generatePolynomialValues(targetF0coeffs, sourceF0.length, 0, 1);
@@ -218,7 +221,7 @@ public class HNMSynthesisTechnology extends VocalizationSynthesisTechnology {
         }
         
         return synthesizeUsingF0Modification(sourceIndex, pScalesArray, pScalesTimes, 
-                tScalesArray, tScalesTimes, aft);
+                tScalesArray, tScalesTimes, effectsParameters, aft);
     }
     
     /**
@@ -228,12 +231,13 @@ public class HNMSynthesisTechnology extends VocalizationSynthesisTechnology {
      * @param pScalesTimes pitch scale times
      * @param tScalesArray time scales array
      * @param tScalesTimes time scale times
+     * @param effectsParameters effects parameters
      * @param aft audio file format
      * @return AudioInputStream of synthesized vocalization
      * @throws SynthesisException if failed to synthesize vocalization
      */
     private AudioInputStream synthesizeUsingF0Modification(int backchannelNumber, float[] pScalesArray, float[] pScalesTimes, 
-            float[] tScalesArray, float[] tScalesTimes, AudioFileFormat aft) throws SynthesisException{
+            float[] tScalesArray, float[] tScalesTimes, Object effectsParameters, AudioFileFormat aft) throws SynthesisException{
         
         if ( backchannelNumber > vHNMFeaturesReader.getNumberOfUnits() ) {
             throw new IllegalArgumentException("requesting unit should not be more than number of units");

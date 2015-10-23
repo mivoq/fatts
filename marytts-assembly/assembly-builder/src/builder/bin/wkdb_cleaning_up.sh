@@ -75,8 +75,12 @@ else
     exit 1
 fi
 
+MARYTTS_BASE_LIB_PATH="$MARY_BASE/lib/"
+
+CLASSPATH=`echo "$MARYTTS_BASE_LIB_PATH"voice*.jar "$MARYTTS_BASE_LIB_PATH"marytts-lang-*.jar "$MARYTTS_BASE_LIB_PATH"marytts-builder*.jar | tr ' ' ':'`
+
 java -showversion -Xmx4096m \
--ea -cp "$MARY_BASE/lib/*" marytts.tools.dbselection.WikipediaProcessor \
+-ea -cp "$CLASSPATH" marytts.tools.dbselection.WikipediaProcessor \
 -locale "$LOCALE" \
 -mysqlHost "$MYSQLHOST" \
 -mysqlUser "$MYSQLUSER" \
