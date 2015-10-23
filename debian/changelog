@@ -1,6 +1,12 @@
+marytts (5.2~20151023170316-1) experimental; urgency=low
+
+  * Initial release.
+
+ -- Giulio Paci <giulio.paci@mivoq.it>  Fri, 23 Oct 2015 19:23:33 +0200
+
 marytts (5.2~20150504125100-1) experimental; urgency=low
 
   * Initial release.
 
- -- Giulio Paci <giulio.paci@mivoq.it>  Thu, 14 May 2015 09:31:20 +0200
+ -- Giulio Paci <giulio.paci@mivoq.it>  Mon, 04 May 2015 19:26:04 +0200
 
