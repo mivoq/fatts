@@ -280,11 +280,11 @@ public class HTSVocoder {
      *   PStream magpst : Fourier magnitudes
      *   PStream lf0pst : Log F0  
      */
-    public AudioInputStream htsMLSAVocoder(HTSParameterGeneration pdf2par, HMMData htsData) 
+  public AudioInputStream htsMLSAVocoder(HTSParameterGeneration pdf2par, HMMData htsData, HMMVoice.HMMEffectsParameters effectsParameters) 
     throws Exception {
         
         int audioSize = computeAudioSize(pdf2par.getMcepPst(), htsData);
-        HTSVocoderDataProducer producer = new HTSVocoderDataProducer(audioSize, pdf2par, htsData);
+        HTSVocoderDataProducer producer = new HTSVocoderDataProducer(audioSize, pdf2par, htsData, effectsParameters);
         producer.start();
         return new DDSAudioInputStream(producer, getHTSAudioFormat(htsData));
 
@@ -329,7 +329,7 @@ public class HTSVocoder {
 
         
     public double [] htsMLSAVocoder(HTSPStream lf0Pst, HTSPStream mcepPst, HTSPStream strPst, HTSPStream magPst, 
-                                    boolean [] voiced, HMMData htsData, HTSVocoderDataProducer audioProducer)
+                                    boolean [] voiced, HMMData htsData, HMMVoice.HMMEffectsParameters effectsParameters, HTSVocoderDataProducer audioProducer)
     throws Exception {
 
       double inc, x;
@@ -337,11 +337,14 @@ public class HTSVocoder {
       double xp=0.0,xn=0.0,fxp,fxn,mix;  /* samples for pulse and for noise and the filtered ones */
       int i, j, k, m, s, mcepframe, lf0frame, s_double; 
 	  // For HMMVocalTractScaleEffect new alpha is computed as follow:
-      double alpha = htsData.getAlpha()/htsData.getAlphaVocalTractScalerAmount();
-      if (htsData.getAlphaVocalTractScalerAmount() != 1)
+      double alpha = htsData.getAlpha();
+      if(effectsParameters != null ) {
+	alpha /= effectsParameters.getVocalTractScale();
+	if (effectsParameters.getVocalTractScale() != 1.0f)
   	  {
-       logger.info("HMMVocalTractScaleEffect: original alpha: "+ htsData.getAlpha() + "; new alpha: " + alpha);
+	    logger.info("HMMVocalTractScaleEffect: original alpha: "+ htsData.getAlpha() + "; new alpha: " + alpha);
    	  }
+      }
       
       
       double beta  = htsData.getBeta();
@@ -464,8 +467,12 @@ x2x +fs -o out > out_short
       for(i=0; i< D1.length; i++)
           D1[i]=0.0;
     
-      f0Std = htsData.getF0Std();
-      f0Shift = htsData.getF0Mean();
+      f0Std = 1.0f;
+      f0Shift = 0.0f;
+      if(effectsParameters != null ) {
+	f0Std = effectsParameters.getF0Std();
+	f0Shift = effectsParameters.getF0Mean();
+      }
       f0MeanOri = 0.0;
 
       for(mcepframe=0,lf0frame=0; mcepframe<mcepPst.getT(); mcepframe++) {
@@ -1427,18 +1434,21 @@ x2x +fs -o out > out_short
     
     
     /** this vocoder read the residual signal from resFile */
-    public double [] htsMLSAVocoder_residual(HMMData htsData, HTSPStream mcepPst, String resFile)
+    public double [] htsMLSAVocoder_residual(HMMData htsData, HMMVoice.HMMEffectsParameters effectsParameters, HTSPStream mcepPst, String resFile)
     throws Exception {
 
       double x;  
       int i, j, k, m, s, mcepframe, lf0frame, s_double; 
       
       // For HMMVocalTractScaleEffect new alpha is computed as follow:
-      double alpha = htsData.getAlpha()/htsData.getAlphaVocalTractScalerAmount();
-      if (htsData.getAlphaVocalTractScalerAmount() != 1)
+      double alpha = htsData.getAlpha();
+      if(effectsParameters != null ) {
+	alpha /= effectsParameters.getVocalTractScale();
+	if (effectsParameters.getVocalTractScale() != 1.0f)
   	  {
-       logger.info("HMMVocalTractScaleEffect: original alpha: "+ htsData.getAlpha() + "; new alpha: " + alpha);
+	    logger.info("HMMVocalTractScaleEffect: original alpha: "+ htsData.getAlpha() + "; new alpha: " + alpha);
    	  }
+      }
      
       
       double beta  = htsData.getBeta();
@@ -1721,7 +1731,7 @@ x2x +fs -o out > out_short
        
        //par2speech.setUseLpcVocoder(true);
                
-       audio_double = par2speech.htsMLSAVocoder(lf0Pst, mcepPst, strPst, magPst, voiced, htsData, null);
+       audio_double = par2speech.htsMLSAVocoder(lf0Pst, mcepPst, strPst, magPst, voiced, htsData, null, null);
        //audio_double = par2speech.htsMLSAVocoder_residual(htsData, mcepPst, resFile);
       
        
@@ -1936,8 +1946,8 @@ x2x +fs -o out > out_short
        
        //Change these for voice effects:
        //                                                                   [min][max]
-       htsData.setF0Std(1.0);  // variable for f0 control, multiply f0      [1.0][0.0--5.0]
-       htsData.setF0Mean(0.0); // variable for f0 control, add f0           [0.0][0.0--100.0]
+       //htsData.setF0Std(1.0);  // variable for f0 control, multiply f0      [1.0][0.0--5.0]
+       //htsData.setF0Mean(0.0); // variable for f0 control, add f0           [0.0][0.0--100.0]
        
        
        int totalFrame = 0;
@@ -2077,7 +2087,7 @@ x2x +fs -o out > out_short
        //audio_double = par2speech.htsMLSAVocoder_residual(htsData, mcepPst, resFile);
        
        
-       audio_double = par2speech.htsMLSAVocoder(lf0Pst, mcepPst, strPst, magPst, voiced, htsData, null);
+       audio_double = par2speech.htsMLSAVocoder(lf0Pst, mcepPst, strPst, magPst, voiced, htsData, null, null);
       
        long lengthInSamples = (audio_double.length * 2 ) / (af.getSampleSizeInBits()/8);
        par2speech.logger.debug("length in samples=" + lengthInSamples );
@@ -2298,9 +2308,9 @@ x2x +fs -o out > out_short
         private HTSPStream magPst;
         private boolean [] voiced;
         private HMMData htsData;
+        private HMMVoice.HMMEffectsParameters effectsParameters;
         
-        
-        public HTSVocoderDataProducer(int audioSize, HTSParameterGeneration pdf2par, HMMData htsData) {
+      public HTSVocoderDataProducer(int audioSize, HTSParameterGeneration pdf2par, HMMData htsData, HMMVoice.HMMEffectsParameters effectsParameters) {
             super(audioSize, new AmplitudeNormalizer(INITIAL_MAX_AMPLITUDE));
             lf0Pst = pdf2par.getlf0Pst();
             mcepPst = pdf2par.getMcepPst();
@@ -2308,12 +2318,13 @@ x2x +fs -o out > out_short
             magPst =  pdf2par.getMagPst();
             voiced = pdf2par.getVoicedArray();
             this.htsData = htsData;
+            this.effectsParameters = effectsParameters;
 
         }
 
         public void run() {
             try {
-                htsMLSAVocoder(lf0Pst, mcepPst, strPst, magPst, voiced, htsData, this);
+	      htsMLSAVocoder(lf0Pst, mcepPst, strPst, magPst, voiced, htsData, effectsParameters, this);
                 putEndOfStream();
             } catch (RuntimeException e) {
                 logger.info("Vocoding interrupted; probably the client has disconnected", e);

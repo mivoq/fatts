@@ -439,10 +439,9 @@ public class TokenToWords implements UtteranceProcessor {
                             .equals(" ")
                     && isUppercaseLetter(((String) tokenItem
                             .findFeature("n.name")).charAt(0))) {
-
                 tokenFeatures.setString("punc", "");
                 String aaa = tokenVal.toLowerCase();
-                if (aaa.equals("a")) {
+                if (aaa.equals("a") && (((String) tokenItem.findFeature("n.name")).length() <= 1)) {
                     wordRelation.addWord(tokenItem, "_a");
                 } else {
                     wordRelation.addWord(tokenItem, aaa);

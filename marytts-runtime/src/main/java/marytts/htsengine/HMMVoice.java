@@ -78,6 +78,43 @@ import org.apache.log4j.Logger;
 
 
 public class HMMVoice extends Voice {
+
+  public class HMMEffectsParameters {
+    private double F0Mean = 0.0f, F0Std = 1.0f, DurationScale = 1.0f, VocalTractScale = 1.0f, Length = 0.0f;
+
+    public double getF0Mean(){
+      return F0Mean;
+    }
+    public double getF0Std(){
+      return F0Std;
+    }
+    public double getDurationScale(){
+      return DurationScale;
+    }
+    public double getLength(){
+      return DurationScale;
+    }
+    public double getVocalTractScale(){
+      return VocalTractScale;
+    }
+    public void setF0Mean(double v){
+      this.F0Mean = v;
+    }
+    public void setF0Std(double v){
+      this.F0Std = v;
+    }
+    public void setDurationScale(double v){
+      this.DurationScale = v;
+    }
+    public void setLength(double v){
+      this.Length = v;
+    }
+    public void setVocalTractScale(double v){
+      this.VocalTractScale = v;
+    }
+  }
+
+  
  
     private HMMData htsData = new HMMData();
     private Logger logger = MaryUtils.getLogger("HMMVoice");
@@ -92,14 +129,6 @@ public class HMMVoice extends Voice {
    }
    
    public HMMData getHMMData(){ return this.htsData; }
-   
-   /* set parameters for generation: f0Std, f0Mean and length, default values 1.0, 0.0 and 0.0 */
-   /* take the values from audio effects component through a MaryData object */
-   public void setF0Std(double dval) { htsData.setF0Std(dval); }
-   public void setF0Mean(double dval) { htsData.setF0Mean(dval); }
-   public void setLength(double dval) { htsData.setLength(dval); }
-   public void setDurationScale(double dval) { htsData.setDurationScale(dval); }
-   public void setVocalTractScale(double dval) { htsData.setVocalTractScale(dval); }
-    
+   public HMMEffectsParameters getHMMEffectsParameters() { return new HMMEffectsParameters();}
 
 } /* class HMMVoice */

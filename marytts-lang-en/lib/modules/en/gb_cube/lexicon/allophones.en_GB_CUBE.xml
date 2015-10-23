@@ -7,7 +7,7 @@
 	<vowel ph="AA" vlng="l" vheight="3" vfront="3" vrnd="-"/>
 	<!-- <vowel ph="O" vlng="l" vheight="3" vfront="3" vrnd="+"/> -->
 	<vowel ph="OO" vlng="l" vheight="3" vfront="3" vrnd="+"/>
-	<vowel ph="u" vlng="l" vheight="1" vfront="3" vrnd="+"/>
+	<!-- <vowel ph="u" vlng="l" vheight="1" vfront="3" vrnd="+"/> -->
 	<vowel ph="i" vlng="l" vheight="1" vfront="1" vrnd="-"/>
 
 	<!-- <vowel ph="{" vlng="s" vheight="3" vfront="1" vrnd="-"/> -->

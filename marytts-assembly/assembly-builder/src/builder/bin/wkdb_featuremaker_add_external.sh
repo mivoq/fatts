@@ -21,9 +21,11 @@ DESCRIPTION:
     $DESCRIPTION
 
 USAGE: 
-`basename $0` [config_file] [sentences_file]
+`basename $0` [config_file] [sentences_file---with-ABSOLUTE-PATH]
 	config_file: wkdb config file  
-sentences_file: file that contains the sentence to add separeted by new line    
+sentences_file: file that contains the sentence to add separeted by new line.
+	It is suggested to write it with absolute path, because there is
+	a \"cd\" command in this script.
 EXAMPLE:
 	`basename $0` /home/mary/wikidb_data/wkdb.conf sentences.txt"
  
@@ -63,7 +65,11 @@ export MARY_BASE="`(cd "$BINDIR"/.. ; pwd)`"
 
 cd $WIKIDATAPATH
 
-java -showversion -ea -cp "$MARY_BASE/lib/*" marytts.tools.dbselection.FeatureMakerAddExternal \
+MARYTTS_BASE_LIB_PATH="$MARY_BASE/lib/"
+
+CLASSPATH=`echo "$MARYTTS_BASE_LIB_PATH"voice*.jar "$MARYTTS_BASE_LIB_PATH"marytts-lang-*.jar "$MARYTTS_BASE_LIB_PATH"marytts-builder*.jar | tr ' ' ':'`
+
+java -showversion -ea -cp "$CLASSPATH" marytts.tools.dbselection.FeatureMakerAddExternal \
 -locale "$LOCALE" \
 -mysqlHost "$MYSQLHOST" \
 -mysqlUser "$MYSQLUSER" \

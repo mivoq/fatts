@@ -45,6 +45,8 @@ public class FileRequestHandler extends BaseHttpRequestHandler
         "logo.png",
         "index.html",
         "documentation.html",
+        "swagger.json",
+        "swagger.yaml",
         "mary.js"
         }));
     

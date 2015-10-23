@@ -172,7 +172,7 @@ public class HTSEngineTest {
                   
       try {
           /* Process Mary context features file and creates UttModel um.   */
-          hmm_tts.processUttFromFile(feaFile, um, htsData);
+	hmm_tts.processUttFromFile(feaFile, um, htsData, null);
 
           /* Generate sequence of speech parameter vectors, generate parameters out of sequence of pdf's */
           /* the generated parameters will be saved in tmp.mfc and tmp.f0, including Mary header. */
@@ -180,7 +180,7 @@ public class HTSEngineTest {
           pdf2par.htsMaximumLikelihoodParameterGeneration(um, htsData, null, debug);
           
           /* Synthesize speech waveform, generate speech out of sequence of parameters */
-          ais = par2speech.htsMLSAVocoder(pdf2par, htsData);
+          ais = par2speech.htsMLSAVocoder(pdf2par, htsData, null);
      
           System.out.println("saving to file: " + outWavFile);
           File fileOut = new File(outWavFile);
@@ -269,7 +269,7 @@ public class HTSEngineTest {
                   
       try {
           /* Process Mary context features file and creates UttModel um.   */
-          hmm_tts.processUttFromFile(feaFile, um, htsData);
+	hmm_tts.processUttFromFile(feaFile, um, htsData, null);
 
           /* Generate sequence of speech parameter vectors, generate parameters out of sequence of pdf's */
           /* the generated parameters will be saved in tmp.mfc and tmp.f0, including Mary header. */
@@ -277,7 +277,7 @@ public class HTSEngineTest {
           pdf2par.htsMaximumLikelihoodParameterGeneration(um, htsData, null, debug);
          
           /* Synthesize speech waveform, generate speech out of sequence of parameters */
-          ais = par2speech.htsMLSAVocoder(pdf2par, htsData);
+          ais = par2speech.htsMLSAVocoder(pdf2par, htsData, null);
      
           System.out.println("saving to file: " + outWavFile);
           File fileOut = new File(outWavFile);
@@ -471,7 +471,7 @@ public class HTSEngineTest {
         AudioInputStream ais;
         
         /* Process label file of Mary context features and creates UttModel um.   */
-        hmm_tts.processUttFromFile(feaFile, um, htsData);
+        hmm_tts.processUttFromFile(feaFile, um, htsData, null);
           
         /* save realised durations in a lab file */
         FileWriter outputStream;
@@ -501,7 +501,7 @@ public class HTSEngineTest {
         pdf2par.htsMaximumLikelihoodParameterGeneration(um, htsData, parFile, debug);
           
         /* Synthesize speech waveform, generate speech out of sequence of parameter */
-        ais = par2speech.htsMLSAVocoder(pdf2par, htsData);
+        ais = par2speech.htsMLSAVocoder(pdf2par, htsData, null);
      
         System.out.println("saving to file: " + outWavFile);
         File fileOut = new File(outWavFile);

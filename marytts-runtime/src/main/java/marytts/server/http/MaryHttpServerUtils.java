@@ -176,7 +176,7 @@ public class MaryHttpServerUtils
     public static String getMimeType(AudioFileFormat.Type audioType)
     {
         if (audioType == AudioFileFormat.Type.WAVE) {
-            return "audio/x-wav, audio/vnd.wave, audio/wav, audio/wave";
+            return "audio/x-wav";
         } else if (audioType == AudioFileFormat.Type.AU) {
             return "audio/basic";
         } else if (audioType == AudioFileFormat.Type.AIFF

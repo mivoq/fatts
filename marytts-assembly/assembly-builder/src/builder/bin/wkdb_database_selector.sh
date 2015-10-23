@@ -12,8 +12,7 @@ set -o errexit
 
 DESCRIPTION="The DatabaseSelector program selects a phonetically/prosodically balanced recording script."
 
-NUMARG=1
-if [ $# -ne $NUMARG ]
+if [ "$#" -eq 0 ]
 then
   echo "NAME:
   	`basename $0`
@@ -22,11 +21,12 @@ DESCRIPTION:
     $DESCRIPTION
 
 USAGE: 
-	`basename $0` [config_file] 
-	config_file: wkdb config file  
+	`basename $0` [config_file] [memory_in_MB (default 4096)]
+	config_file: wkdb config file
+        memory_in_MB: number
 
 EXAMPLE:
-	`basename $0` /home/mary/wikidb_data/wkdb.conf" 
+	`basename $0` /home/mary/wikidb_data/wkdb.conf 16384"
   exit 1
 fi  
 
@@ -34,6 +34,22 @@ fi
 # read variables from config file
 CONFIG_FILE="`dirname "$1"`/`basename "$1"`"
 . $CONFIG_FILE
+
+
+if [ "$2" != "" ]
+then
+    if [ $(echo $2 | tr -d '[:digit:]') ]; then
+	echo "ERROR: second parameter \"$2\" is not a number!"
+	exit 1
+    fi
+    
+    echo "Memory is set to $2 MB"
+    MEMORY="$2"
+else
+    echo "Memory is set to default 4096 MB"
+    MEMORY="4096"
+fi
+
 
 BINDIR="`dirname "$0"`"
 export MARY_BASE="`(cd "$BINDIR"/.. ; pwd)`"
@@ -92,7 +108,11 @@ cd $WIKIDATAPATH
 # To be sure of recomputing init.bin
 rm -f init.bin
 
-java -showversion -ea -Xmx4096m -cp "$MARY_BASE/lib/*" marytts.tools.dbselection.DatabaseSelector \
+MARYTTS_BASE_LIB_PATH="$MARY_BASE/lib/"
+
+CLASSPATH=`echo "$MARYTTS_BASE_LIB_PATH"voice*.jar "$MARYTTS_BASE_LIB_PATH"marytts-lang-*.jar "$MARYTTS_BASE_LIB_PATH"marytts-builder*.jar | tr ' ' ':'`
+
+java -showversion -ea -Xmx"$MEMORY"m -cp "$CLASSPATH" marytts.tools.dbselection.DatabaseSelector \
 -locale "$LOCALE" \
 -mysqlHost "$MYSQLHOST" \
 -mysqlUser "$MYSQLUSER" \

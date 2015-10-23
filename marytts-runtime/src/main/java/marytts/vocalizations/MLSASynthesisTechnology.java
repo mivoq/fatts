@@ -35,6 +35,7 @@ import marytts.util.data.BufferedDoubleDataSource;
 import marytts.util.data.audio.DDSAudioInputStream;
 import marytts.util.math.MathUtils;
 import marytts.util.math.Polynomial;
+import marytts.htsengine.HMMVoice;
 
 
 /**
@@ -51,7 +52,7 @@ public class MLSASynthesisTechnology extends VocalizationSynthesisTechnology {
     protected boolean imposePolynomialContour = true;
 
     public MLSASynthesisTechnology(String mlsaFeatureFile, String intonationFeatureFile, 
-            String mixedExcitationFile, boolean imposePolynomialContour) throws MaryConfigurationException {
+				   String mixedExcitationFile, boolean imposePolynomialContour) throws MaryConfigurationException {
 
         try {
             vMLSAFeaturesReader = new MLSAFeatureFileReader(mlsaFeatureFile);
@@ -81,8 +82,8 @@ public class MLSASynthesisTechnology extends VocalizationSynthesisTechnology {
             htsData.readMixedExcitationFilters(mixedFiltersStream);
             htsData.setPdfStrStream(null);
             //                                                                   [min][max]
-            htsData.setF0Std(1.0);  // variable for f0 control, multiply f0      [1.0][0.0--5.0]
-            htsData.setF0Mean(0.0); // variable for f0 control, add f0           [0.0][0.0--100.0]
+            //effectsParameters.setF0Std(1.0);  // variable for f0 control, multiply f0      [1.0][0.0--5.0]
+            //effectsParameters.setF0Mean(0.0); // variable for f0 control, add f0           [0.0][0.0--100.0]
         }
         catch (Exception e) {
             throw new MaryConfigurationException("htsData initialization failed.. ", e);
@@ -95,11 +96,12 @@ public class MLSASynthesisTechnology extends VocalizationSynthesisTechnology {
     /**
      * Synthesize given vocalization using MLSA vocoder  
      * @param unitIndex unit index
+     * @param effectsParameters effects parameters
      * @param aft audio file format
      * @return AudioInputStream of synthesized vocalization
      * @throws SynthesisException if failed to synthesize vocalization
      */
-    public AudioInputStream synthesize(int backchannelNumber, AudioFileFormat aft) throws SynthesisException {
+    public AudioInputStream synthesize(int backchannelNumber, Object effectsParameters, AudioFileFormat aft) throws SynthesisException {
 
         if ( backchannelNumber > vMLSAFeaturesReader.getNumberOfUnits() ) {
             throw new IllegalArgumentException("requesting unit should not be more than number of units");
@@ -114,31 +116,33 @@ public class MLSASynthesisTechnology extends VocalizationSynthesisTechnology {
         double[][] mgc =  vMLSAFeaturesReader.getUnitMGCs(backchannelNumber);
         double[][] strengths = vMLSAFeaturesReader.getUnitStrengths(backchannelNumber);
 
-        return synthesizeUsingMLSAVocoder(mgc, strengths, lf0, voiced, aft);
+        return synthesizeUsingMLSAVocoder(mgc, strengths, lf0, voiced, effectsParameters, aft);
     }
 
     /**
      * Re-synthesize given vocalization using MLSA (it is same as synthesize())  
      * @param unitIndex unit index
      * @param aft audio file format
+     * @param effectsParameters
      * @return AudioInputStream of synthesized vocalization
      * @throws SynthesisException if failed to synthesize vocalization
      */
     @Override
-    public AudioInputStream reSynthesize(int backchannelNumber, AudioFileFormat aft) throws SynthesisException {
-        return synthesize(backchannelNumber, aft); 
+    public AudioInputStream reSynthesize(int backchannelNumber, Object effectsParameters, AudioFileFormat aft) throws SynthesisException {
+        return synthesize(backchannelNumber, effectsParameters, aft); 
     }
 
     /**
      * Impose target intonation contour on given vocalization using MLSA technology  
      * @param sourceIndex unit index of vocalization 
      * @param targetIndex unit index of target intonation
+     * @param effectsParameters effects parameters
      * @param aft audio file format
      * @return AudioInputStream of synthesized vocalization
      * @throws SynthesisException if failed to synthesize vocalization
      */
     @Override
-    public AudioInputStream synthesizeUsingImposedF0(int sourceIndex, int targetIndex, AudioFileFormat aft) throws SynthesisException {
+    public AudioInputStream synthesizeUsingImposedF0(int sourceIndex, int targetIndex, Object effectsParameters, AudioFileFormat aft) throws SynthesisException {
 
         if ( sourceIndex > vMLSAFeaturesReader.getNumberOfUnits() || targetIndex > vMLSAFeaturesReader.getNumberOfUnits() ) {
             throw new IllegalArgumentException("requesting unit should not be more than number of units");
@@ -161,11 +165,11 @@ public class MLSASynthesisTechnology extends VocalizationSynthesisTechnology {
             double[] targetF0coeffs = this.vIntonationReader.getIntonationCoeffs(targetIndex);
             double[] sourceF0coeffs = this.vIntonationReader.getIntonationCoeffs(sourceIndex);
             if ( targetF0coeffs == null || sourceF0coeffs == null ) {
-                return reSynthesize(sourceIndex, aft);
+                return reSynthesize(sourceIndex, effectsParameters, aft);
             }
             
             if ( targetF0coeffs.length == 0 || sourceF0coeffs.length == 0 ) {
-                return reSynthesize(sourceIndex, aft);
+                return reSynthesize(sourceIndex, effectsParameters, aft);
             }
             double[] f0Contour = Polynomial.generatePolynomialValues(targetF0coeffs, voiced.length, 0, 1);
             lf0 =  new double[f0Contour.length];
@@ -174,7 +178,7 @@ public class MLSASynthesisTechnology extends VocalizationSynthesisTechnology {
             }
         }
 
-        return synthesizeUsingMLSAVocoder(mgc, strengths, lf0, voiced, aft);
+        return synthesizeUsingMLSAVocoder(mgc, strengths, lf0, voiced, effectsParameters, aft);
     }
 
     /**
@@ -183,13 +187,14 @@ public class MLSASynthesisTechnology extends VocalizationSynthesisTechnology {
      * @param strengths strengths
      * @param lf0 logf0 features
      * @param voiced voiced frames 
+     * @param effectsParameters
      * @param aft audio file format
      * @return AudioInputStream of synthesized vocalization
      * @throws SynthesisException if failed to synthesize vocalization
      * @throws SynthesisException if log f0 values for voiced frames are not in the natural pitch range ( 30 to 1000 in Hertzs) 
      */
-    private AudioInputStream synthesizeUsingMLSAVocoder(double[][] mgc, double[][] strengths, 
-            double[] lf0, boolean[] voiced, AudioFileFormat aft) throws SynthesisException {
+     private AudioInputStream synthesizeUsingMLSAVocoder(double[][] mgc, double[][] strengths, 
+							 double[] lf0, boolean[] voiced, Object effectsParameters, AudioFileFormat aft) throws SynthesisException {
 
         assert lf0.length == mgc.length;
         assert mgc.length == strengths.length;
@@ -247,7 +252,7 @@ public class MLSASynthesisTechnology extends VocalizationSynthesisTechnology {
 
         double[] audio_double = null;
         try {
-            audio_double = par2speech.htsMLSAVocoder(lf0Pst, mcepPst, strPst, null, voiced, htsData, null);
+	  audio_double = par2speech.htsMLSAVocoder(lf0Pst, mcepPst, strPst, null, voiced, htsData, (HMMVoice.HMMEffectsParameters) effectsParameters, null);
         } catch (Exception e) {
             throw new SynthesisException("MLSA vocoding failed .. "+e);
         }

@@ -58,7 +58,11 @@ rm -fr xml_splits
 rm -f wikilist.txt
 mkdir -p xml_splits/
 
-java -showversion -ea -cp "$MARY_BASE/lib/*" marytts.tools.dbselection.WikipediaDumpSplitter \
+MARYTTS_BASE_LIB_PATH="$MARY_BASE/lib/"
+
+CLASSPATH=`echo "$MARYTTS_BASE_LIB_PATH"voice*.jar "$MARYTTS_BASE_LIB_PATH"marytts-lang-*.jar "$MARYTTS_BASE_LIB_PATH"marytts-builder*.jar | tr ' ' ':'`
+
+java -showversion -ea -cp "$CLASSPATH" marytts.tools.dbselection.WikipediaDumpSplitter \
 -xmlDump "$XMLFILENAME" \
 -outDir "xml_splits/" \
 -maxPages 25000

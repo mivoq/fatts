@@ -200,7 +200,7 @@ public class HMMSynthesizer implements WaveformSynthesizer {
                  
                  // The actual durations are already fixed in the htsEngine.process()
                  // here i pass segements and boundaries to update the realised acoustparams, dur and f0
-                 MaryData audio = htsEngine.process(in, targetFeaturesList, segmentsAndBoundaries, null);     
+                 MaryData audio = htsEngine.process(in, targetFeaturesList, segmentsAndBoundaries, null, null);  
                       
                  assert audio.getAudio() != null;           
 
@@ -222,7 +222,7 @@ public class HMMSynthesizer implements WaveformSynthesizer {
     /**
      * {@inheritDoc}
      */
-    public AudioInputStream synthesize(List<Element> tokensAndBoundaries, Voice voice, String outputParams)
+  public AudioInputStream synthesize(List<Element> tokensAndBoundaries, Voice voice, String outputParams, Object effectsParams)
         throws SynthesisException {
         
         if (!voice.synthesizer().equals(this)) {
@@ -268,7 +268,7 @@ public class HMMSynthesizer implements WaveformSynthesizer {
             
             // the actual durations are already fixed in the htsEngine.process()
             // here i pass segements and boundaries to update the realised acoustparams, dur and f0
-            MaryData audio = htsEngine.process(d, targetFeaturesList, segmentsAndBoundaries, tokensAndBoundaries);     
+            MaryData audio = htsEngine.process(d, targetFeaturesList, segmentsAndBoundaries, tokensAndBoundaries, (HMMVoice.HMMEffectsParameters) effectsParams);
                  
             return audio.getAudio();           
                      

@@ -85,12 +85,13 @@ public class FDPSOLASynthesisTechnology extends VocalizationSynthesisTechnology 
     /**
      * Synthesize given vocalization (i.e. unit-selection)  
      * @param unitIndex unit index
+     * @param effectsParameters effects parameters
      * @param aft audio file format
      * @return AudioInputStream of synthesized vocalization
      * @throws SynthesisException if failed to synthesize vocalization
      */   
     @Override
-    public AudioInputStream synthesize(int backchannelNumber, AudioFileFormat aft) throws SynthesisException {
+    public AudioInputStream synthesize(int backchannelNumber, Object effectsParameters, AudioFileFormat aft) throws SynthesisException {
         
         int numberOfBackChannels = unitFileReader.getNumberOfUnits();
         if(backchannelNumber >= numberOfBackChannels){
@@ -117,11 +118,12 @@ public class FDPSOLASynthesisTechnology extends VocalizationSynthesisTechnology 
     /**
      * Re-synthesize given vocalization using FDPSOLA technology   
      * @param unitIndex unit index
+     * @param effectsParameters effects parameters
      * @param aft audio file format
      * @return AudioInputStream of synthesized vocalization
      * @throws SynthesisException if failed to synthesize vocalization
      */
-    public AudioInputStream reSynthesize( int backchannelNumber, AudioFileFormat aft ) throws SynthesisException{
+    public AudioInputStream reSynthesize( int backchannelNumber, Object effectsParameters, AudioFileFormat aft ) throws SynthesisException{
         double[] pScalesArray = {1.0f};
         double[] tScalesArray = {1.0f};
         return synthesizeUsingF0Modification(backchannelNumber, pScalesArray, tScalesArray, aft);
@@ -131,12 +133,13 @@ public class FDPSOLASynthesisTechnology extends VocalizationSynthesisTechnology 
      * Impose target intonation contour on given vocalization using HNM technology 
      * @param sourceIndex unit index of vocalization 
      * @param targetIndex unit index of target intonation
+     * @param effectsParameters effects parameters
      * @param aft audio file format
      * @return AudioInputStream of synthesized vocalization
      * @throws SynthesisException if failed to synthesize vocalization
      */
     @Override
-    public AudioInputStream synthesizeUsingImposedF0(int sourceIndex, int targetIndex, AudioFileFormat aft) throws SynthesisException{
+    public AudioInputStream synthesizeUsingImposedF0(int sourceIndex, int targetIndex, Object effectsParameters, AudioFileFormat aft) throws SynthesisException{
         
         if ( !f0ContourImposeSupport ) {
             throw new SynthesisException("Mary configuration of this voice doesn't support intonation contour imposition");
@@ -148,7 +151,7 @@ public class FDPSOLASynthesisTechnology extends VocalizationSynthesisTechnology 
         }
         
         if ( sourceIndex == targetIndex ) {
-            return reSynthesize(sourceIndex, aft); 
+            return reSynthesize(sourceIndex, effectsParameters, aft); 
         }
         
         double[] sourceF0 = this.vIntonationReader.getContour(sourceIndex);
@@ -156,11 +159,11 @@ public class FDPSOLASynthesisTechnology extends VocalizationSynthesisTechnology 
         double[] sourceF0coeffs = this.vIntonationReader.getIntonationCoeffs(sourceIndex);
         
         if ( targetF0coeffs == null || sourceF0coeffs == null ) {
-            return reSynthesize(sourceIndex, aft);
+            return reSynthesize(sourceIndex, effectsParameters, aft);
         }
         
         if ( targetF0coeffs.length == 0 || sourceF0coeffs.length == 0 ) {
-            return reSynthesize(sourceIndex, aft);
+            return reSynthesize(sourceIndex, effectsParameters, aft);
         }
         
         double[] targetF0 = Polynomial.generatePolynomialValues(targetF0coeffs, sourceF0.length, 0, 1);

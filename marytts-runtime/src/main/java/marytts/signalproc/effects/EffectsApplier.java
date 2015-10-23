@@ -339,20 +339,20 @@ public class EffectsApplier {
     }
     
     //Check if any effects are selected for which the corresponding parameters should be fed to the HMM synthesizer
-    public void setHMMEffectParameters(Voice voice, String currentEffect)
+    public HMMVoice.HMMEffectsParameters setHMMEffectParameters(Voice voice, String currentEffect)
     {
-
         if (voice instanceof HMMVoice)
         {
+	    HMMVoice.HMMEffectsParameters params = ((HMMVoice)voice).getHMMEffectsParameters();
             //Just create dummy effects to set default values for HMM voices
             HMMF0AddEffect dummy1 = new HMMF0AddEffect();
             HMMF0ScaleEffect dummy2 = new HMMF0ScaleEffect();
             HMMDurationScaleEffect dummy3 = new HMMDurationScaleEffect();
             HMMVocalTractScaleEffect dummy4 = new HMMVocalTractScaleEffect();
-            ((HMMVoice)voice).setF0Mean(dummy1.NO_MODIFICATION);
-            ((HMMVoice)voice).setF0Std(dummy2.NO_MODIFICATION);
-            ((HMMVoice)voice).setDurationScale(dummy3.NO_MODIFICATION);
-            ((HMMVoice)voice).setVocalTractScale(dummy4.NO_MODIFICATION);
+            params.setF0Mean(dummy1.NO_MODIFICATION);
+	    params.setF0Std(dummy2.NO_MODIFICATION);
+	    params.setDurationScale(dummy3.NO_MODIFICATION);
+	    params.setVocalTractScale(dummy4.NO_MODIFICATION);
             //
 
             parseEffectsAndParams(currentEffect);
@@ -362,16 +362,18 @@ public class EffectsApplier {
                 for (int i=0; i<audioEffects.length; i++)
                 {
                     if (audioEffects[i] instanceof HMMF0AddEffect)
-                        ((HMMVoice)voice).setF0Mean((double)((HMMF0AddEffect)audioEffects[i]).amount);
+                        params.setF0Mean((double)((HMMF0AddEffect)audioEffects[i]).amount);
                     else if (audioEffects[i] instanceof HMMF0ScaleEffect)
-                        ((HMMVoice)voice).setF0Std(((HMMF0ScaleEffect)audioEffects[i]).amount);
+                        params.setF0Std(((HMMF0ScaleEffect)audioEffects[i]).amount);
                     else if (audioEffects[i] instanceof HMMDurationScaleEffect)
-                        ((HMMVoice)voice).setDurationScale(((HMMDurationScaleEffect)audioEffects[i]).amount);
+                        params.setDurationScale(((HMMDurationScaleEffect)audioEffects[i]).amount);
                     else if (audioEffects[i] instanceof HMMVocalTractScaleEffect)
-                        ((HMMVoice)voice).setVocalTractScale(((HMMVocalTractScaleEffect)audioEffects[i]).amount);
+                        params.setVocalTractScale(((HMMVocalTractScaleEffect)audioEffects[i]).amount);
                 }
             }
+	    return params;
         }
+	return null;
     }
     
     public static void main(String[] args) throws Exception
